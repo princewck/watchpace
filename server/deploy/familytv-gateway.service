@@ -1,0 +1,23 @@
+[Unit]
+Description=Family TV official gateway
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=familytv
+Group=familytv
+WorkingDirectory=/opt/familytv-gateway
+EnvironmentFile=/etc/familytv-gateway.env
+ExecStart=/opt/tv-parent-node-v24.20.0/bin/node /opt/familytv-gateway/dist/node-server.mjs
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/familytv-gateway/runtime
+MemoryMax=256M
+UMask=0077
+[Install]
+WantedBy=multi-user.target

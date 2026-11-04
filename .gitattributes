@@ -1,0 +1,8 @@
+* text=auto
+*.swift text eol=lf
+*.java text eol=lf
+*.mjs text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.png binary
+*.cer binary

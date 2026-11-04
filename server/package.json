@@ -1,0 +1,26 @@
+{
+  "name": "watchpace-server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "build:node": "esbuild ./node-runtime/server.mjs --bundle --platform=node --target=node22 --format=esm --packages=external --loader:.cer=binary --outfile=dist/node-server.mjs",
+    "init:node": "node node-runtime/init.mjs",
+    "start:node": "node dist/node-server.mjs",
+    "benchmark": "node node-runtime/benchmark.mjs",
+    "format:check": "prettier --check \"src/*.mjs\" \"node-runtime/*.mjs\" \"test/*.mjs\" \"../android/app/src/**/*.java\" --plugin=prettier-plugin-java",
+    "lint": "eslint src node-runtime test"
+  },
+  "dependencies": {
+    "@apple/app-store-server-library": "^3.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2",
+    "eslint": "^9.39.5",
+    "prettier": "3.9.10",
+    "prettier-plugin-java": "2.11.0"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
