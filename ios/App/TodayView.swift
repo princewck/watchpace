@@ -94,10 +94,6 @@ struct TodayView: View {
           if let limit = store.policy.daily_limit_seconds {
             LabeledContent(L10n.tr("每日观看上限"), value: limit.durationText)
           }
-          if usage.state.control_revision != nil {
-            Text(usage.state.executionText).font(.subheadline).foregroundStyle(
-              Color("SupportingText"))
-          }
           if (usage.state.override_seconds ?? 0) > 0 {
             LabeledContent(L10n.tr("临时额度"), value: (usage.state.override_seconds ?? 0).durationText)
           }

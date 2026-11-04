@@ -62,19 +62,7 @@ struct PlaybackState: Codable {
   var applied_revision: Int?
   var enforcement_result: String?
   var applied_ms: Double?
-  var executionText: String {
-    guard let revision = control_revision, let applied = applied_revision else {
-      return L10n.tr("此电视尚未提供执行回执")
-    }
-    guard applied == revision else { return L10n.tr("等待电视获取最新指令") }
-    switch enforcement_result {
-    case "stopped": return L10n.tr("电视报告已停止受管播放")
-    case "allowed": return L10n.tr("电视报告已恢复允许观看")
-    case "observing": return L10n.tr("电视仅处于观察模式，未执行拦截")
-    case "failed": return L10n.tr("电视执行失败，请检查权限")
-    default: return L10n.tr("等待电视确认执行结果")
-    }
-  }
+
 }
 struct MobileCapabilities: Codable {
   var version: Int
