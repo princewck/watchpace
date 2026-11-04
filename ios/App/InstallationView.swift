@@ -28,7 +28,7 @@ struct InstallationView: View {
       ) {
         slide(
           icon: "wifi", title: L10n.tr("先连上同一个 Wi-Fi"),
-          subtitle: L10n.tr("请确保电视和运行 Codex、Cursor 等 Agent 助手的电脑，在同一个 Wi-Fi 下。")
+          subtitle: L10n.tr("请确保电视和运行 DSH、WorkBuddy、Cursor 等 Agent 助手的电脑，在同一个 Wi-Fi 下。")
         ) {
           Text(L10n.tr("准备好电视和电脑，就可以继续。")).foregroundStyle(Color("SupportingText"))
         }.tag(0)
