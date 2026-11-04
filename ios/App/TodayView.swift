@@ -4,6 +4,8 @@ struct TodayView: View {
   @Environment(FamilyStore.self) private var store
   @State private var showGrant = false
   @State private var confirmPause = false
+  @State private var requestedPause = false
+  @State private var pauseTarget: String?
   var body: some View {
     List {
       if store.demo {
@@ -22,7 +24,7 @@ struct TodayView: View {
           }.accessibilityIdentifier("demoTVGuide")
         }
       }
-      if let notice = store.notice {
+      if store.demo, let notice = store.notice {
         Section {
           Label(notice, systemImage: "info.circle").font(.subheadline).accessibilityIdentifier(
             "operationNotice")
@@ -44,13 +46,11 @@ struct TodayView: View {
       }
       if !store.devices.isEmpty {
         Section {
-          Picker(
-            L10n.tr("当前电视"),
-            selection: Binding(
-              get: { store.selectedID ?? "" }, set: { id in Task { await store.select(id) } })
-          ) {
-            ForEach(store.devices) { device in Text(device.label).tag(device.id) }
-          }.disabled(store.busy)
+          if store.devices.count > 1 {
+            TVSelectionPicker()
+          } else if let device = store.selected {
+            LabeledContent(L10n.tr("当前电视"), value: device.label)
+          }
           if !store.demo, store.capabilities?.lan == true {
             NavigationLink {
               LocalNetworkView()
@@ -105,6 +105,8 @@ struct TodayView: View {
         Section {
           if store.capabilities?.pause == true {
             Button {
+              requestedPause = store.usage?.state.paused != true
+              pauseTarget = store.selectedID
               confirmPause = true
             } label: {
               Label(
@@ -142,7 +144,7 @@ struct TodayView: View {
           ContentUnavailableView(
             L10n.tr("还没有电视"), systemImage: "tv",
             description: Text(L10n.tr("跟着四步引导，让你的 Agent 助手完成配置。")))
-          NavigationLink(L10n.tr("添加电视")) { InstallationView() }
+          NavigationLink(L10n.tr("添加电视")) { AddTVView() }
         }
       } else if store.loadState.failure == nil {
         Section { ProgressView(L10n.tr("正在获取观看情况…")) }
@@ -162,14 +164,21 @@ struct TodayView: View {
     .navigationTitle(L10n.tr("今天"))
     .refreshable { await store.refresh() }
     .sheet(isPresented: $showGrant) { GrantView().demoExitFloating(reservingSpace: true) }
-    .confirmationDialog(
-      store.usage?.state.paused == true ? L10n.tr("解除家长暂停？") : L10n.tr("暂停受管视频播放？"),
-      isPresented: $confirmPause, titleVisibility: .visible
+    .alert(
+      requestedPause ? L10n.tr("暂停这台电视？") : L10n.tr("解除这台电视的暂停？"),
+      isPresented: $confirmPause
     ) {
-      Button(L10n.tr("确认")) { Task { await store.setPaused(store.usage?.state.paused != true) } }
+      Button(requestedPause ? L10n.tr("暂停电视") : L10n.tr("解除暂停")) {
+        guard pauseTarget == store.selectedID else { return }
+        let paused = requestedPause
+        Task { await store.setPaused(paused) }
+      }
       Button(L10n.tr("取消"), role: .cancel) {}
     } message: {
-      Text(L10n.tr("指令只作用于当前电视。解除暂停后，观看额度和休息时段仍然有效。"))
+      Text(
+        requestedPause
+          ? L10n.tr("只暂停当前这台电视，其他电视不受影响。")
+          : L10n.tr("只解除家长手动暂停。每天的观看时间和休息安排仍然有效。"))
     }
   }
 }

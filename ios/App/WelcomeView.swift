@@ -128,6 +128,13 @@ struct LoginView: View {
   @State private var password = ""
   @FocusState private var focus: Field?
   enum Field { case username, password, origin }
+  init(initialOrigin: String? = nil) {
+    if let initialOrigin {
+      _serviceSelection = State(
+        initialValue: ServiceEndpoint.isOfficial(initialOrigin) ? .official : .custom)
+      _customOrigin = State(initialValue: initialOrigin)
+    }
+  }
   var body: some View {
     NavigationStack {
       Form {

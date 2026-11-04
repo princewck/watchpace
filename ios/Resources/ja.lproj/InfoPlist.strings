@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Family TV";
 "NSLocalNetworkUsageDescription" = "ペアリングした家庭のテレビを検出し、暗号化接続で一時停止、視聴時間、ルールを直接送信します。許可しなくてもクラウド経由で操作できます。";
+"NSCameraUsageDescription" = "家族が共有したTVのQRコードを読み取り、このTVの共同管理を申請するために使います。カメラを許可しなくても、共有リンクを貼り付けて申請できます。";

@@ -10,7 +10,7 @@ settings:
     SWIFT_VERSION: '5.0'
     DEVELOPMENT_TEAM: ''
     MARKETING_VERSION: 1.0.0
-    CURRENT_PROJECT_VERSION: 22
+    CURRENT_PROJECT_VERSION: 24
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 targets:
   FamilyTV:
@@ -27,6 +27,10 @@ targets:
       properties:
         FamilyTVServiceOrigin: $(FAMILYTV_SERVICE_ORIGIN)
         NSLocalNetworkUsageDescription: 用于发现并加密连接你配对的家庭电视，直接发送暂停、额度和观看规则。拒绝后仍可使用云端。
+        NSCameraUsageDescription: 扫描另一位家长分享的电视二维码，申请共同管理这台电视。不会保存或上传相机画面。
+        CFBundleURLTypes:
+          - CFBundleURLName: wang.chengkai.familytv.share
+            CFBundleURLSchemes: [watchpace]
         NSBonjourServices: ["_familytv._tcp"]
     settings:
       base:

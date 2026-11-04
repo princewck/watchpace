@@ -37,7 +37,7 @@ def download(manifest, output):
             urllib.request.Request(
                 apk["url"],
                 headers={
-                    "User-Agent": "FamilyTV-Setup/1.0.6",
+                    "User-Agent": "FamilyTV-Setup/1.0.9",
                     "Accept": "application/vnd.android.package-archive",
                 },
             ),

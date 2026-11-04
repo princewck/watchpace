@@ -37,22 +37,7 @@ export function healthFor(d, now) {
     updated_ms: d.last_heartbeat_ms,
   };
 }
-export async function ownDevice(db, s, url) {
-  const id = url.searchParams.get("device");
-  const row = id
-    ? await db
-        .prepare("SELECT * FROM devices WHERE id=? AND household_id=?")
-        .bind(id, s.household_id)
-        .first()
-    : await db
-        .prepare(
-          "SELECT * FROM devices WHERE household_id=? ORDER BY created_ms,id LIMIT 1",
-        )
-        .bind(s.household_id)
-        .first();
-  if (!row) throw new HTTPError(404, "Device not found");
-  return row;
-}
+export { ownDevice } from "./device-access.mjs";
 export async function newSession(db, household, username, now) {
   const token = secret(),
     csrf = secret(),
@@ -79,13 +64,13 @@ export async function operation(db, s, device, kind, payload, requestID, now) {
     .prepare(
       "INSERT INTO operations VALUES(?,?,?,?,?,?,?) ON CONFLICT(household_id,request_id) DO NOTHING",
     )
-    .bind(s.household_id, requestID, kind, device.id, digest, body, now)
+    .bind(device.household_id, requestID, kind, device.id, digest, body, now)
     .run();
   const existing = await db
     .prepare(
       "SELECT kind,device_id,body_hash FROM operations WHERE household_id=? AND request_id=?",
     )
-    .bind(s.household_id, requestID)
+    .bind(device.household_id, requestID)
     .first();
   if (
     existing.kind !== kind ||

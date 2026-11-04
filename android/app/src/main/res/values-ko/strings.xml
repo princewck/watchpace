@@ -1,0 +1,13 @@
+<resources>
+  <string name="accessibility_description">보호자 설정에 따라 영상을 일시정지하고 휴식 안내를 표시합니다. 화면 글자를 읽거나 리모컨 버튼을 가로채지 않습니다.</string>
+  <string name="break_pause_title">TV를 잠시 쉬어 주세요</string>
+  <string name="break_pause_body">보호자가 시청을 일시정지했습니다.\n휴대전화 앱에서 일시정지를 해제해 주세요.\n시청이 허용되면 이 화면이 자동으로 닫힙니다.</string>
+  <string name="break_limit_title">오늘 시청 시간이 끝났어요</string>
+  <string name="break_limit_body">지금은 잠시 쉬어 주세요.\n계속 보려면 보호자가 휴대전화에서 시청 시간을 추가할 수 있습니다.\n시청이 허용되면 이 화면이 자동으로 닫힙니다.</string>
+  <string name="break_rest_title">지금은 쉬는 시간이에요</string>
+  <string name="break_rest_body">가족이 약속한 쉬는 시간입니다.\n먼저 쉬고 나중에 다시 와 주세요.\n보호자가 휴대전화에서 일정을 바꿀 수도 있습니다.</string>
+  <string name="break_allow_title">다시 시청할 수 있어요</string>
+  <string name="break_allow_body">이전 화면으로 돌아가는 중입니다…\n자동으로 돌아가지 않으면 리모컨의 뒤로 버튼을 눌러 주세요.\n영상으로 돌아가면 재생 버튼을 눌러 계속 보세요.</string>
+  <string name="break_wait_title">시청 설정을 확인하고 있어요</string>
+  <string name="break_wait_body">잠시 기다려 주세요.\n이 화면이 계속되면 보호자가 휴대전화에서 TV 연결 상태를 확인해 주세요.</string>
+</resources>

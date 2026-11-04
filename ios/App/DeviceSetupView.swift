@@ -18,33 +18,45 @@ struct DeviceSetupView: View {
             Text(L10n.tr("安装尚未完成。收到电视上报后，才会显示观看状态。")).foregroundStyle(Color("SupportingText"))
           }
         }
-        Section {
-          NavigationLink(device.needsInstallation ? L10n.tr("继续安装") : L10n.tr("检查或修复连接")) {
-            InstallationView(existingDevice: device)
-          }.accessibilityIdentifier("resumeInstallation")
+        if device.isOwner {
+          Section {
+            NavigationLink(device.needsInstallation ? L10n.tr("继续安装") : L10n.tr("检查或修复连接")) {
+              InstallationView(existingDevice: device)
+            }.accessibilityIdentifier("resumeInstallation")
+          }
+          Section { NavigationLink(L10n.tr("分享此电视")) { TVShareView(deviceID: device.id) } }
         }
         if !store.demo {
           Section {
-            Button(L10n.tr("移除电视"), role: .destructive) { confirmRemove = true }.disabled(
+            Button(device.isOwner ? L10n.tr("移除电视") : L10n.tr("退出共享"), role: .destructive) {
+              confirmRemove = true
+            }.disabled(
               store.busy
             )
             .accessibilityIdentifier("removeDevice")
           } footer: {
-            Text(L10n.tr("移除后，旧连接凭证立即失效。之后可以重新添加这台电视。"))
+            Text(
+              device.isOwner
+                ? L10n.tr("移除后，旧连接凭证立即失效。之后可以重新添加这台电视。") : L10n.tr("退出只取消你自己的管理权限，不影响电视和其他家人。"))
           }
         }
       }
     }
     .navigationTitle(L10n.tr("电视与连接设置")).navigationBarTitleDisplayMode(.inline)
-    .confirmationDialog(L10n.tr("移除这台电视？"), isPresented: $confirmRemove, titleVisibility: .visible)
-    {
-      Button(L10n.tr("移除电视"), role: .destructive) {
+    .confirmationDialog(
+      device?.isOwner == false ? L10n.tr("退出这台电视的共享？") : L10n.tr("移除这台电视？"),
+      isPresented: $confirmRemove, titleVisibility: .visible
+    ) {
+      Button(device?.isOwner != false ? L10n.tr("移除电视") : L10n.tr("退出共享"), role: .destructive) {
         guard let device else { return }
         Task { if await store.removeDevice(device) { dismiss() } }
       }
       Button(L10n.tr("取消"), role: .cancel) {}
     } message: {
-      Text(L10n.tr("这台电视的绑定和观看记录将被移除，家庭账号保留。电视本机的软件不会自动卸载。"))
+      Text(
+        device?.isOwner == false
+          ? L10n.tr("退出只取消你自己的管理权限，不影响电视和其他家人。") : L10n.tr("这台电视的绑定和观看记录将被移除，家庭账号保留。电视本机的软件不会自动卸载。")
+      )
     }
   }
 }

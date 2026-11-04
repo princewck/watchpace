@@ -5,6 +5,8 @@ struct TVDevice: Codable, Identifiable, Equatable {
   var label: String
   var enabled: Int
   var last_heartbeat_ms: Double?
+  var is_owner: Bool? = nil
+  var isOwner: Bool { is_owner != false }
   var installation_complete: Bool? = nil
   var needsInstallation: Bool { last_heartbeat_ms == nil || installation_complete == false }
   var id: String { device_name }

@@ -1,1 +1,13 @@
-<resources><string name="accessibility_description">家长授权的观看时间管理。到点用系统返回退出视频并显示休息答题页，不读取页面文字，不拦截遥控器按键。</string></resources>
+<resources>
+  <string name="accessibility_description">根据家长设置暂停视频并显示休息提示。不读取屏幕文字，不拦截遥控器按键。</string>
+  <string name="break_pause_title">电视先休息一下</string>
+  <string name="break_pause_body">家长暂停了观看。\n请在手机“观有度”里解除暂停。\n可以继续观看时，这一页会自动关闭。</string>
+  <string name="break_limit_title">今天的观看时间用完了</string>
+  <string name="break_limit_body">现在休息一下吧。\n如果需要继续看，请家长在手机上增加观看时间。\n可以继续观看时，这一页会自动关闭。</string>
+  <string name="break_rest_title">现在是休息时间</string>
+  <string name="break_rest_body">到了家里约好的休息时间。\n请先休息，稍后再来。\n家长也可以在手机上调整安排。</string>
+  <string name="break_allow_title">已经可以继续观看了</string>
+  <string name="break_allow_body">正在返回刚才的页面…\n如果没有自动返回，请按遥控器返回键。\n回到视频后，按播放继续观看。</string>
+  <string name="break_wait_title">正在确认观看安排</string>
+  <string name="break_wait_body">请稍等一会儿。\n如果一直停在这里，请家长在手机上查看这台电视的连接状态。</string>
+</resources>

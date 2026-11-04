@@ -8,6 +8,7 @@ struct HistoryView: View {
   @State private var range = 7
   var body: some View {
     List {
+      TVSelectionSection()
       if store.demo { Section { DemoBanner() } }
       if let failure = store.loadState.failure {
         Section {

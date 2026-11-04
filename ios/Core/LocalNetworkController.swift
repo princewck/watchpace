@@ -172,6 +172,7 @@ struct LanDelivery {
     }
     throw TVError.message(L10n.tr("本地电视未响应，将尝试云端。"))
   }
+  func isPaired(with device: String) -> Bool { paired && boundDevice == device }
   func refreshState(device: String, revision: Int) async -> LanReceipt? {
     guard paired, boundDevice == device, let identity else { return nil }
     do {

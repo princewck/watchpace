@@ -36,7 +36,7 @@ struct SettingsView: View {
             }
           }
         }
-        NavigationLink(L10n.tr("添加电视")) { InstallationView() }
+        NavigationLink(L10n.tr("添加电视")) { AddTVView() }
       }
       Section(L10n.tr("帮助与隐私")) {
         NavigationLink(L10n.tr("语言")) { LanguageSettingsView() }.disabled(store.busy)

@@ -34,7 +34,7 @@ def main():
         a.origin.rstrip("/") + "/installation/redeem",
         data=json.dumps({"code": code}).encode(),
         headers={
-            "User-Agent": "FamilyTV-Setup/1.0.6",
+            "User-Agent": "FamilyTV-Setup/1.0.9",
             "Content-Type": "application/json",
             "Accept": "application/json",
         },

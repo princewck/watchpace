@@ -1,3 +1,4 @@
+import { devicePolicy, canAccess } from "./device-access.mjs";
 import { createPublicKey, verify } from "node:crypto";
 import { HTTPError, hash } from "./security.mjs";
 import { validatePolicy, stateFor } from "./policy.mjs";
@@ -166,6 +167,8 @@ export async function lanKeys(db, device, now) {
 export async function syncLan(db, household, device, envelopes, now) {
   if (!Array.isArray(envelopes) || envelopes.length > 16)
     throw new HTTPError(400, "Maximum sixteen local commands");
+  const actor = household;
+  household = device.household_id;
   const results = [];
   let expected = null,
     chainBase = null;
@@ -173,11 +176,15 @@ export async function syncLan(db, household, device, envelopes, now) {
     try {
       const pairing = await db
         .prepare(
-          "SELECT * FROM lan_pairings WHERE id=? AND household_id=? AND device_id=? AND expires_ms>?",
+          "SELECT * FROM lan_pairings WHERE id=? AND device_id=? AND expires_ms>?",
         )
-        .bind(e?.key_id || "", household, device.id, now)
+        .bind(e?.key_id || "", device.id, now)
         .first();
-      if (!pairing)
+      if (
+        !pairing ||
+        (actor !== device.household_id && pairing.household_id !== actor) ||
+        !(await canAccess(db, device, pairing.household_id))
+      )
         throw new HTTPError(403, "Local controller revoked or expired");
       const command = decodeCommand(
           e,
@@ -276,9 +283,9 @@ export async function syncLan(db, household, device, envelopes, now) {
 export async function localState(db, device, now) {
   const fresh = await db
     .prepare(
-      "SELECT d.*,h.policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE d.id=?",
+      "SELECT d.*,h.policy_json AS household_policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE d.id=?",
     )
     .bind(device.id)
     .first();
-  return stateFor(db, fresh, JSON.parse(fresh.policy_json), now);
+  return stateFor(db, fresh, devicePolicy(fresh), now);
 }

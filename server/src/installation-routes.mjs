@@ -1,3 +1,4 @@
+import { requireOwner, accessWhere } from "./device-access.mjs";
 import { randomUUID, randomBytes } from "node:crypto";
 import { HTTPError, secret, hash, json } from "./security.mjs";
 import { healthFor, ownDevice } from "./context.mjs";
@@ -14,13 +15,16 @@ export async function installationRoutes({
   if (path === "/admin/devices" && !post) {
     const value = await db
       .prepare(
-        "SELECT * FROM devices WHERE household_id=? ORDER BY created_ms,id",
+        "SELECT d.* FROM devices d WHERE " +
+          accessWhere +
+          " ORDER BY d.created_ms,d.id",
       )
-      .bind(s.household_id)
+      .bind(s.household_id, s.household_id)
       .all();
     return json({
       devices: value.results.map((d) => ({
         device_name: d.id,
+        is_owner: d.household_id === s.household_id,
         label: d.label,
         enabled: d.enabled,
         last_heartbeat_ms: d.last_heartbeat_ms,
@@ -34,6 +38,7 @@ export async function installationRoutes({
     const d = await ownDevice(db, s, url),
       code = randomBytes(8).toString("hex").toUpperCase(),
       expires = now + 15 * 60000;
+    requireOwner(d, s);
     await db.batch([
       db
         .prepare("DELETE FROM installation_tickets WHERE device_id=?")
@@ -65,6 +70,19 @@ export async function installationRoutes({
   }
   if (path === "/admin/device_remove" && post) {
     const d = await ownDevice(db, s, url);
+    if (d.household_id !== s.household_id) {
+      await db.batch([
+        db
+          .prepare("DELETE FROM tv_access WHERE device_id=? AND household_id=?")
+          .bind(d.id, s.household_id),
+        db
+          .prepare(
+            "DELETE FROM lan_pairings WHERE device_id=? AND household_id=?",
+          )
+          .bind(d.id, s.household_id),
+      ]);
+      return json({ success: true });
+    }
     await db.batch([
       db
         .prepare("DELETE FROM operations WHERE household_id=? AND device_id=?")

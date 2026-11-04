@@ -53,4 +53,37 @@ extension FamilyStore {
     guard !demo, let auth else { throw TVError.message(L10n.tr("演示模式不会连接真实电视。")) }
     return try await api.request("/admin/installation_status", auth: auth, device: device)
   }
+  func installationControl(device: String) async throws -> PlaybackState {
+    if demo, let state = usage?.state { return state }
+    if lan.isPaired(with: device),
+      let receipt = await lan.refreshState(
+        device: device, revision: usage?.state.control_revision ?? 1), let state = receipt.state
+    {
+      return state
+    }
+    guard let auth else { throw TVError.message(L10n.tr("请先登录家庭。")) }
+    return try await api.request("/admin/control", auth: auth, device: device)
+  }
+  func installationPause(device: String, paused: Bool, revision: Int) async throws -> PlaybackState
+  {
+    if demo, var state = usage?.state {
+      state.paused = paused
+      state.control_revision = revision + 1
+      state.applied_revision = state.control_revision
+      state.enforcement_result = paused ? "stopped" : "allowed"
+      state.status = paused ? "lock" : "allow"
+      return state
+    }
+    guard let auth else { throw TVError.message(L10n.tr("请先登录家庭。")) }
+    if lan.isPaired(with: device) {
+      return try await lan.deliver(
+        payload: ["kind": "pause", "paused": paused], device: device, revision: revision,
+        auth: auth, api: api
+      ).state
+    }
+    return try await api.request(
+      "/admin/control", auth: auth, device: device,
+      body: ["paused": paused, "request_id": UUID().uuidString])
+  }
+
 }

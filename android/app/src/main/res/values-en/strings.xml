@@ -1,0 +1,13 @@
+<resources>
+  <string name="accessibility_description">Pauses videos and shows break reminders set by a parent. Does not read screen text or intercept remote buttons.</string>
+  <string name="break_pause_title">Time for a TV break</string>
+  <string name="break_pause_body">A parent has paused viewing.\nAsk them to allow viewing in the phone app.\nThis screen will close when viewing is allowed.</string>
+  <string name="break_limit_title">TV time is up for today</string>
+  <string name="break_limit_body">Take a break for now.\nA parent can add more viewing time in the phone app.\nThis screen will close when viewing is allowed.</string>
+  <string name="break_rest_title">It’s break time</string>
+  <string name="break_rest_body">It’s the break time your family agreed on.\nCome back later.\nA parent can change the schedule in the phone app.</string>
+  <string name="break_allow_title">You can watch again</string>
+  <string name="break_allow_body">Returning to the previous screen…\nIf it stays here, press Back on the remote.\nPress Play when you return to your video.</string>
+  <string name="break_wait_title">Checking your viewing time</string>
+  <string name="break_wait_body">Please wait a moment.\nIf this screen stays here, ask a parent to check the TV connection in the phone app.</string>
+</resources>

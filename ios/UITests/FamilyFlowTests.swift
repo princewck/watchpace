@@ -194,6 +194,9 @@ extension FamilyFlowTests {
         let app = XCUIApplication(); app.launchArguments = ["--demo"]; app.launchEnvironment["FAMILYTV_UI_LANGUAGE"] = "zh-Hans"; app.launch()
         app.tabBars.buttons["我的"].tap()
         app.buttons["添加电视"].tap()
+        XCTAssertTrue(app.buttons["initializeNewTV"].waitForExistence(timeout: 5))
+        capture(app, name: "add-TV-two-choices")
+        app.buttons["initializeNewTV"].tap()
         XCTAssertTrue(app.staticTexts["先连上同一个 Wi-Fi"].waitForExistence(timeout: 5))
         capture(app, name: "setup-1-wifi")
         XCTAssertLessThanOrEqual(app.buttons["installationNext"].frame.maxY + 8, app.buttons["globalDemoExit"].frame.minY)
@@ -203,10 +206,20 @@ extension FamilyFlowTests {
         XCTAssertTrue(app.staticTexts["DEMO1234-DEMO5678"].waitForExistence(timeout: 5))
         capture(app, name: "setup-2-agent")
         app.buttons["installationNext"].tap()
-        XCTAssertTrue(app.staticTexts["看看连接是否健康"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["跟着下面完成检查"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["installationNext"].isEnabled)
+        XCTAssertTrue(app.buttons["installationPause"].exists)
+        for _ in 0..<3 where !app.buttons["installationPause"].isHittable { app.swipeUp() }
+        app.buttons["installationPause"].tap()
+        XCTAssertTrue(app.buttons["installationResume"].waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(app.buttons["installationResume"].frame.maxY + 8, app.buttons["installationNext"].frame.minY)
+        capture(app, name: "setup-inline-resume")
+        app.buttons["installationResume"].tap()
+        XCTAssertTrue(app.buttons["checkDebugging"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["installationNext"].isEnabled)
+
         app.swipeLeft()
-        XCTAssertTrue(app.staticTexts["看看连接是否健康"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["跟着下面完成检查"].waitForExistence(timeout: 3))
         capture(app, name: "setup-3-health")
         for _ in 0..<3 where !app.buttons["demoInstallationPass"].isHittable { app.swipeUp() }
         app.buttons["demoInstallationPass"].tap()
@@ -253,8 +266,53 @@ extension FamilyFlowTests {
         device.tap()
         XCTAssertTrue(app.buttons["resumeInstallation"].waitForExistence(timeout: 5))
         app.buttons["resumeInstallation"].tap()
-        XCTAssertTrue(app.staticTexts["看看连接是否健康"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["跟着下面完成检查"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["installationNext"].isEnabled)
         capture(app, name: "recover-incomplete-installation")
+    }
+}
+
+extension FamilyFlowTests {
+    @MainActor func testEnglishInlinePauseFitsAboveFooter() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--demo"]
+        app.launchEnvironment["FAMILYTV_UI_LANGUAGE"] = "en"
+        app.launch()
+        app.tabBars.buttons["My family"].tap()
+        app.buttons["Add a TV"].tap()
+        app.buttons["initializeNewTV"].tap()
+        app.buttons["installationNext"].tap()
+        app.buttons["Generate setup code"].tap()
+        app.buttons["installationNext"].tap()
+        let pause = app.buttons["installationPause"]
+        XCTAssertTrue(pause.waitForExistence(timeout: 5))
+        XCTAssertLessThanOrEqual(pause.frame.maxY + 8, app.buttons["installationNext"].frame.minY)
+        capture(app, name: "setup-inline-pause-English")
+    }
+}
+
+
+extension FamilyFlowTests {
+    @MainActor func testPauseUsesCenteredAlertAndSharingIsPerTV() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--demo"]
+        app.launchEnvironment["FAMILYTV_UI_LANGUAGE"] = "zh-Hans"
+        app.launch()
+        for _ in 0..<3 where !app.buttons["pauseTV"].isHittable { app.swipeUp() }
+        app.buttons["pauseTV"].tap()
+        XCTAssertTrue(app.alerts["暂停这台电视？"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.alerts.buttons["取消"].exists)
+        XCTAssertTrue(app.alerts.buttons["暂停电视"].exists)
+        capture(app, name: "centered-pause-confirmation")
+        app.alerts.buttons["取消"].tap()
+        app.tabBars.buttons["规则"].tap()
+        XCTAssertTrue(app.buttons["currentTVPicker"].exists)
+        app.tabBars.buttons["记录"].tap()
+        XCTAssertTrue(app.buttons["currentTVPicker"].exists)
+        app.tabBars.buttons["我的"].tap()
+        app.buttons["添加电视"].tap()
+        app.buttons["scanSharedTV"].tap()
+        XCTAssertTrue(app.navigationBars["从分享码添加"].waitForExistence(timeout: 5))
+        capture(app, name: "join-TV-permission-explainer")
     }
 }

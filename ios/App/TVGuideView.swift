@@ -32,7 +32,7 @@ struct TVGuideView: View {
       }
       Section(L10n.tr("先约定，再观看")) {
         Label(L10n.tr("手机设置规则，查看电视反馈"), systemImage: "slider.horizontal.3")
-        Text(L10n.tr("观看规则由本家庭的电视共享，每台分别计时。家长暂停和临时观看时间只影响选中的电视。"))
+        Text(L10n.tr("观看规则、家长暂停和临时观看时间都只影响选中的电视，每台电视分别计时。"))
         Label(L10n.tr("在家可直连，外出用云端"), systemImage: "network")
         Text(L10n.tr("支持家庭网络直连的新版电视配套应用，可在配对后优先直连，连不上再尝试云端。使用此新版时，电视没有互联网也会继续使用已保存的规则。"))
         Label(L10n.tr("允许观看后，仍需手动继续播放"), systemImage: "play")

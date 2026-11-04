@@ -8,6 +8,10 @@ struct InstallationView: View {
   @State private var step = 0
   @State private var showLogin = false
   @State private var health: InstallationHealth?
+  @State private var control: PlaybackState?
+  @State private var sendingTest = false
+  @State private var resumedForTest = false
+  @State private var refreshing = false
   @State private var checkError: String?
   var body: some View {
     VStack(spacing: 0) {
@@ -74,30 +78,24 @@ struct InstallationView: View {
         }.tag(1)
         if store.setupTicket != nil || existingDevice != nil {
           slide(
-            icon: "checkmark.shield", title: L10n.tr("看看连接是否健康"),
-            subtitle: L10n.tr("助手完成测试后，这里会自动更新。")
+            icon: "checkmark.shield", title: L10n.tr("跟着下面完成检查"),
+            subtitle: L10n.tr("按顺序完成即可，不用离开本页。"), compact: true
           ) {
-            VStack(spacing: 16) {
-              check(L10n.tr("电视已连接"), verifiedHealth?.checks.connected == true)
-              check(L10n.tr("播放拦截与恢复已验证"), verifiedHealth?.checks.playback_test == true)
-              check(L10n.tr("必要权限正常"), verifiedHealth?.checks.permissions == true)
-              check(L10n.tr("ADB 已关闭"), verifiedHealth?.checks.adb_closed == true)
-              check(L10n.tr("完整重启后重新连接"), verifiedHealth?.checks.rebooted == true)
-            }.padding(20).background(.background, in: .rect(cornerRadius: 16))
-            Text(L10n.tr("最后请执行系统重启，不要点“关机”；关机可能只是熄屏。"))
-              .font(.subheadline).foregroundStyle(.primary)
+            InstallationChecksPanel(
+              health: verifiedHealth, control: control, sending: sendingTest || refreshing,
+              resumedForTest: resumedForTest, refresh: refreshHealth, pause: sendTestPause)
             if let checkError {
               Text(checkError).font(.footnote).foregroundStyle(Color("SupportingText"))
             }
             if !store.demo {
-              Text(L10n.tr("安装未完成也可以稍后继续；安装码只用于领取配置，电视首次上报后才算已连接。")).font(.footnote)
+              Text(L10n.tr("离开不会取消安装。回来时点底部“我的”→“家庭设备”里的这台电视→“继续安装”。")).font(.footnote)
                 .foregroundStyle(Color("SupportingText"))
               Button(L10n.tr("重新生成安装码")) { confirmRestart = true }.disabled(store.busy)
             }
             if store.demo {
               Button(L10n.tr("演示检查通过的效果")) {
                 health = InstallationHealth(
-                  device: "demo-install",
+                  device: existingDevice?.id ?? store.setupTicket?.device ?? "demo-install",
                   checks: InstallationChecks(
                     connected: true, playback_test: true, adb_closed: true, rebooted: true,
                     permissions: true), complete: true)
@@ -169,7 +167,17 @@ struct InstallationView: View {
     }
     .sheet(isPresented: $showLogin) { LoginView() }
     .task(id: step) {
-      guard step == 2, !store.demo else { return }
+      guard step == 2 else { return }
+      if store.demo {
+        if health == nil {
+          health = InstallationHealth(
+            device: existingDevice?.id ?? store.setupTicket?.device ?? "demo-install",
+            checks: InstallationChecks(
+              connected: true, playback_test: false, adb_closed: false, rebooted: false,
+              permissions: true), complete: false)
+        }
+        return
+      }
       while !Task.isCancelled {
         await refreshHealth()
         do { try await Task.sleep(for: .seconds(5)) } catch { return }
@@ -191,7 +199,7 @@ struct InstallationView: View {
     switch step {
     case 0: L10n.tr("已在同一 Wi-Fi，下一步")
     case 1: L10n.tr("已交给助手，查看检查")
-    case 2: verifiedHealth?.complete == true ? L10n.tr("检查通过，下一步") : L10n.tr("等待检查通过")
+    case 2: verifiedHealth?.complete == true ? L10n.tr("检查通过，下一步") : L10n.tr("先完成当前检查")
     default: verifiedHealth?.complete == true ? L10n.tr("完成") : L10n.tr("等待检查通过")
     }
   }
@@ -206,20 +214,27 @@ struct InstallationView: View {
     }.accessibilityElement(children: .combine)
   }
   private func slide<Content: View>(
-    icon: String, title: String, subtitle: String, @ViewBuilder content: () -> Content
+    icon: String, title: String, subtitle: String, compact: Bool = false,
+    @ViewBuilder content: () -> Content
   ) -> some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 22) {
-        Image(systemName: icon).font(.largeTitle).foregroundStyle(Color.accentColor)
-          .accessibilityHidden(true)
-        Text(title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true)
-        Text(subtitle).font(.body).foregroundStyle(.primary).fixedSize(
+      VStack(alignment: .leading, spacing: compact ? 14 : 22) {
+        Image(systemName: icon).font(compact ? .title2 : .largeTitle).foregroundStyle(
+          Color.accentColor
+        )
+        .accessibilityHidden(true)
+        Text(title).font(compact ? .title2.bold() : .largeTitle.bold()).fixedSize(
+          horizontal: false, vertical: true)
+        Text(subtitle).font(compact ? .subheadline : .body).foregroundStyle(.primary).fixedSize(
           horizontal: false, vertical: true)
         content()
-      }.padding(24).padding(.top, 16).frame(maxWidth: 600)
+      }.padding(24).padding(.top, compact ? 0 : 16).frame(maxWidth: 600)
     }
   }
   private func refreshHealth() async {
+    guard !refreshing, !store.demo else { return }
+    refreshing = true
+    defer { refreshing = false }
     guard let deviceID = existingDevice?.id ?? store.setupTicket?.device else {
       checkError = L10n.tr("先生成安装码并交给助手。")
       return
@@ -228,14 +243,29 @@ struct InstallationView: View {
       let result = try await store.installationHealth(device: deviceID)
       guard (existingDevice?.id ?? store.setupTicket?.device) == deviceID else { return }
       health = result
+      control = try? await store.installationControl(device: deviceID)
       checkError = nil
       if let index = store.devices.firstIndex(where: { $0.id == deviceID }) {
         store.devices[index].last_heartbeat_ms = result.updated_ms
         store.devices[index].installation_complete = result.complete
       }
     } catch {
-      health = nil
       checkError = L10n.tr("暂时未能获取检查结果，请稍后重试。")
     }
+  }
+  private func sendTestPause(_ paused: Bool) async {
+    guard !sendingTest, let device = existingDevice?.id ?? store.setupTicket?.device else { return }
+    sendingTest = true
+    defer { sendingTest = false }
+    do {
+      control = try await store.installationPause(
+        device: device, paused: paused, revision: control?.control_revision ?? 1)
+      resumedForTest = !paused
+      if store.demo {
+        if !paused { health?.checks.playback_test = true }
+      } else {
+        await refreshHealth()
+      }
+    } catch { store.error = L10n.message(for: error) }
   }
 }

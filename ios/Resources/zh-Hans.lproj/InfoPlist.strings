@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "观有度";
 "NSLocalNetworkUsageDescription" = "用于发现并加密连接你配对的家庭电视，直接发送暂停、额度和观看规则。拒绝后仍可使用云端。";
+"NSCameraUsageDescription" = "用于扫描家人分享的电视二维码，申请共同管理这台电视。不允许相机时，仍可粘贴分享链接。";

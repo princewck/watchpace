@@ -1,3 +1,4 @@
+import { devicePolicy } from "./device-access.mjs";
 import { registerLanIdentity, lanKeys, syncLan } from "./lan.mjs";
 import { HTTPError, hash } from "./security.mjs";
 import { dayOf, stateFor } from "./policy.mjs";
@@ -8,7 +9,7 @@ export async function heartbeat(db, request, body, now, env) {
     throw new HTTPError(401, "Device authentication required");
   const d = await db
     .prepare(
-      "SELECT d.*,h.policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE token_hash=? AND enabled=1",
+      "SELECT d.*,h.policy_json AS household_policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE token_hash=? AND enabled=1",
     )
     .bind(hash(bearer.slice(7)))
     .first();
@@ -28,7 +29,7 @@ export async function heartbeat(db, request, body, now, env) {
     .first();
   if (duplicate)
     return {
-      ...(await stateFor(db, d, JSON.parse(d.policy_json), now)),
+      ...(await stateFor(db, d, devicePolicy(d), now)),
       duplicate: true,
     };
   if (d.last_heartbeat_ms !== null && now - d.last_heartbeat_ms < 8000)
@@ -174,11 +175,11 @@ export async function heartbeat(db, request, body, now, env) {
     throw new HTTPError(429, "Heartbeat raced; retry later");
   const fresh = await db
     .prepare(
-      "SELECT d.*,h.policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE d.id=?",
+      "SELECT d.*,h.policy_json AS household_policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE d.id=?",
     )
     .bind(d.id)
     .first();
-  const state = await stateFor(db, fresh, JSON.parse(fresh.policy_json), now);
+  const state = await stateFor(db, fresh, devicePolicy(fresh), now);
   // New clients enforce cached policy and report actual playback; the URL also
   // supports existing WebView agents until the native offline screen is installed.
   if (state.status === "lock")

@@ -16,6 +16,17 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>wang.chengkai.familytv.share</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>watchpace</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>FamilyTVServiceOrigin</key>
@@ -24,6 +35,8 @@
 	<array>
 		<string>_familytv._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>扫描另一位家长分享的电视二维码，申请共同管理这台电视。不会保存或上传相机画面。</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>用于发现并加密连接你配对的家庭电视，直接发送暂停、额度和观看规则。拒绝后仍可使用云端。</string>
 </dict>

@@ -77,6 +77,19 @@ for path in ROOT.rglob("*"):
                     errors.append(
                         f"{path.relative_to(ROOT)}: missing link target {target}"
                     )
+# Public TV builds must remain independent of the private experimental launcher.
+import xml.etree.ElementTree as ET
+
+android_ns = "{http://schemas.android.com/apk/res/android}"
+manifest = ET.parse(ROOT / "android/app/src/main/AndroidManifest.xml")
+for category in manifest.findall("./application/activity/intent-filter/category"):
+    if category.get(android_ns + "name") == "android.intent.category.HOME":
+        errors.append("Public TV client must not take over the default Home")
+legacy = ("com.ts.launcher", "com.gathin.tvhome", "wang.chengkai.homeentry", "wang.chengkai.tvchallenge")
+for source in (ROOT / "android/app/src").rglob("*.java"):
+    if any(package in source.read_text() for package in legacy):
+        errors.append(str(source.relative_to(ROOT)) + ": private launcher dependency")
+
 result = subprocess.run(
     ["git", "ls-files", "-z"], cwd=ROOT, capture_output=True, check=True
 )

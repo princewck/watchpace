@@ -13,6 +13,7 @@ struct RootView: View {
   @Environment(FamilyStore.self) private var store
   @Environment(SubscriptionStore.self) private var subscription
   @Environment(\.scenePhase) private var scenePhase
+  @State private var sharedLink: String?
   @State private var errorPresentation = FamilyErrorPresentation()
   var body: some View {
     Group {
@@ -74,6 +75,20 @@ struct RootView: View {
             Button(L10n.tr("完成")) { subscription.hasPurchaseIntent = false }
           }
         }
+      }
+    }
+    .onOpenURL { url in
+      guard (try? TVShareLink(url.absoluteString)) != nil else { return }
+      sharedLink = url.absoluteString
+    }
+    .sheet(isPresented: Binding(get: { sharedLink != nil }, set: { if !$0 { sharedLink = nil } })) {
+      NavigationStack {
+        JoinSharedTVView(initialLink: sharedLink ?? "")
+          .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+              Button(L10n.tr("完成")) { sharedLink = nil }
+            }
+          }
       }
     }
     .familyErrorAlert()

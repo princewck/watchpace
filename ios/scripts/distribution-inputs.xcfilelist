@@ -6,6 +6,7 @@ $(SRCROOT)/../installer/family-tv-setup/agents/openai.yaml
 $(SRCROOT)/../installer/family-tv-setup/assets/release.json
 $(SRCROOT)/../installer/family-tv-setup/references/compatibility.md
 $(SRCROOT)/../installer/family-tv-setup/references/install.md
+$(SRCROOT)/../installer/family-tv-setup/references/parent-prompts.md
 $(SRCROOT)/../installer/family-tv-setup/scripts/device-health.py
 $(SRCROOT)/../installer/family-tv-setup/scripts/download-apk.py
 $(SRCROOT)/../installer/family-tv-setup/scripts/endpoint.py
@@ -19,6 +20,6 @@ $(SRCROOT)/../ios/Resources/ja.lproj/Localizable.strings
 $(SRCROOT)/../ios/Resources/ko.lproj/Localizable.strings
 $(SRCROOT)/../ios/Resources/zh-Hans.lproj/Localizable.strings
 $(SRCROOT)/../scripts/check-distribution.py
-$(SRCROOT)/../server/public/downloads/install/1.0.6/family-tv-setup.zip
-$(SRCROOT)/../server/public/downloads/install/1.0.6/manifest.json
-$(SRCROOT)/../server/public/downloads/tv/5.0.3/family-tv.apk
+$(SRCROOT)/../server/public/downloads/install/1.0.9/family-tv-setup.zip
+$(SRCROOT)/../server/public/downloads/install/1.0.9/manifest.json
+$(SRCROOT)/../server/public/downloads/tv/5.0.7/family-tv.apk

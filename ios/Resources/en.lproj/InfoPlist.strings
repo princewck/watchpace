@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "Family TV";
 "NSLocalNetworkUsageDescription" = "Find and securely connect to your paired household TVs to send pause commands, viewing time and rules directly. Cloud controls remain available if you decline.";
+"NSCameraUsageDescription" = "Scan a TV sharing QR code from a family member to request access to that TV. If you decline camera access, you can still paste the sharing link.";

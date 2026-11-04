@@ -220,7 +220,7 @@ test("an offline command chain and transport retry each apply exactly once", asy
   const duplicate = await (await f.send(third)).json();
   assert.equal(duplicate.bonus_expires_ms, expires);
 });
-test("LAN policy synchronization changes only the owning household", async (t) => {
+test("LAN policy synchronization changes only the selected TV", async (t) => {
   const f = await fixture(t);
   await f.beat();
   await f.enroll();
@@ -230,8 +230,11 @@ test("LAN policy synchronization changes only the owning household", async (t) =
   const result = await f.send(f.envelope({ kind: "policy", policy }));
   assert.equal(result.status, 200);
   assert.equal(
-    (await (await f.call("/admin/config", null, f.a)).json()).policy
-      .daily_limit_seconds,
+    (
+      await (
+        await f.call("/admin/config?device=" + f.device.device, null, f.a)
+      ).json()
+    ).policy.daily_limit_seconds,
     1800,
   );
   assert.equal(
@@ -293,5 +296,57 @@ test("a real CryptoKit DER signature is accepted by Node verification", async ()
         vector.envelope.issued_ms,
       ),
     /signature/,
+  );
+});
+
+test("shared parent local signatures synchronize into the TV owner and revoke cleanly", async (t) => {
+  const f = await fixture(t);
+  await f.beat();
+  const q = "?device=" + f.device.device;
+  const invite = await (
+    await f.call("/admin/share/create" + q, {}, f.a)
+  ).json();
+  const request = await (
+    await f.call("/admin/share/request", { code: invite.code }, f.b)
+  ).json();
+  await f.call(
+    "/admin/share/approve" + q,
+    { request_id: request.request_id },
+    f.a,
+  );
+  assert.equal(
+    (
+      await f.call(
+        "/admin/lan/pair" + q,
+        { key_id: f.key_id, public_key_der: f.public_key_der },
+        f.b,
+      )
+    ).status,
+    200,
+  );
+  const command = f.envelope({ kind: "pause", paused: true });
+  const result = await f.call(
+    "/admin/lan/command" + q,
+    { envelope: command },
+    f.b,
+  );
+  assert.equal(result.status, 200, await result.clone().text());
+  assert.equal((await result.json()).paused, true);
+  const next = f.envelope({ kind: "pause", paused: false }, { base: 2 });
+  const replay = await (await f.beat({ lan_commands: [next] })).json();
+  assert.equal(replay.lan_sync_results[0].status, "accepted");
+  await f.call(
+    "/admin/share/revoke" + q,
+    { household_id: f.b.identity.tenant_id },
+    f.a,
+  );
+  assert.equal(
+    (await f.call("/admin/lan/command" + q, { envelope: next }, f.b)).status,
+    404,
+  );
+  assert.equal(
+    (await (await f.beat({ lan_commands: [next] })).json()).lan_sync_results[0]
+      .status,
+    "rejected",
   );
 });

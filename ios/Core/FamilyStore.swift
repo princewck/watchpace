@@ -149,7 +149,8 @@ enum DataLoadState: Equatable {
       guard version == refreshVersion else { return }
       devices = response.devices
       if !devices.contains(where: { $0.id == selectedID }) { selectedID = devices.first?.id }
-      let config: PolicyResponse = try await api.request("/admin/config", auth: auth)
+      let config: PolicyResponse = try await api.request(
+        "/admin/config", auth: auth, device: selectedID)
       guard version == refreshVersion else { return }
       policy = config.policy
       policyLoaded = true
@@ -207,6 +208,8 @@ enum DataLoadState: Equatable {
     guard !busy else { return }
     selectedID = id
     usage = nil
+    policyLoaded = false
+    notice = nil
     await refresh()
   }
   func savePolicy(_ value: ViewingPolicy) async -> Bool {
@@ -229,7 +232,7 @@ enum DataLoadState: Equatable {
           usage?.state = delivery.state
         } else {
           let _: PolicyResponse = try await api.request(
-            "/admin/config", auth: auth, body: ["policy": object])
+            "/admin/config", auth: auth, device: selectedID, body: ["policy": object])
         }
       }
       policy = value

@@ -11,3 +11,5 @@
 - iOS 的系统框架和 SF Symbols 由 Apple 系统提供，使用需遵守 Apple 相关条款。
 
 应用包名和品牌名称仅用于识别用户设备上的应用，不表示相关品牌背书或授权本项目分发第三方应用。
+
+- React Bits 的 Silk、Aurora、Dark Veil 着色器：Copyright (c) 2026 David Haz，采用 MIT + Commons Clause；仅作为本应用背景集成，包含原生适配、浅色配色和单通道渲染改动。[完整许可](licenses/REACT_BITS_LICENSE.txt)。这些第三方文件不适用本项目的 MIT 再许可，不得单独出售或作为组件包再分发。来源：https://github.com/DavidHDev/react-bits 。

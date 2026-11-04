@@ -41,7 +41,7 @@ struct BetterBreaksView: View {
     }
     .navigationTitle(L10n.tr("少打扰的休息安排")).navigationBarTitleDisplayMode(.inline)
     .confirmationDialog(
-      L10n.tr("将稳定间隔用于本家庭全部电视？"), isPresented: $confirm, titleVisibility: .visible
+      L10n.tr("将稳定间隔用于当前电视？"), isPresented: $confirm, titleVisibility: .visible
     ) {
       Button(L10n.tr("确认保存稳定间隔")) {
         Task { _ = await store.savePolicy(BreakDesign.steadyIntervals(store.policy)) }

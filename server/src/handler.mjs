@@ -1,3 +1,6 @@
+import { configRoute } from "./config-routes.mjs";
+import { sharingRoutes } from "./sharing.mjs";
+import { devicePolicy, requireOwner } from "./device-access.mjs";
 import { restPage } from "./rest-page.mjs";
 import { pairLan, localState, syncLan } from "./lan.mjs";
 import { randomUUID } from "node:crypto";
@@ -15,7 +18,7 @@ import {
   cookie,
   json,
 } from "./security.mjs";
-import { DEFAULT_POLICY, validatePolicy, dayOf, stateFor } from "./policy.mjs";
+import { DEFAULT_POLICY, dayOf, stateFor } from "./policy.mjs";
 import {
   subscriptionStatus,
   saveTransaction,
@@ -65,7 +68,7 @@ export function createHandler({
           throw new HTTPError(401, "Device authentication required");
         const d = await db
           .prepare(
-            "SELECT d.*,h.policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE token_hash=? AND enabled=1",
+            "SELECT d.*,h.policy_json AS household_policy_json FROM devices d JOIN households h ON h.id=d.household_id WHERE token_hash=? AND enabled=1",
           )
           .bind(hash(bearer.slice(7)))
           .first();
@@ -77,7 +80,7 @@ export function createHandler({
           permissions_ok: d.permissions_ok === 1,
           boot_count: d.boot_count,
           adb_enabled: d.adb_enabled,
-          state: await stateFor(db, d, JSON.parse(d.policy_json), now),
+          state: await stateFor(db, d, devicePolicy(d), now),
         });
       }
       if (path === "/admin/register" && post) {
@@ -241,21 +244,19 @@ export function createHandler({
           paid_history: env.OFFICIAL_CLOUD !== "false",
           lan: true,
         });
-      if (path === "/admin/config") {
-        if (!post) return json({ policy: JSON.parse(s.policy_json) });
-        const policy = validatePolicy(body.policy);
-        await db.batch([
-          db
-            .prepare("UPDATE households SET policy_json=? WHERE id=?")
-            .bind(JSON.stringify(policy), s.household_id),
-          db
-            .prepare(
-              "UPDATE devices SET revision=revision+1 WHERE household_id=?",
-            )
-            .bind(s.household_id),
-        ]);
-        return json({ success: true, policy });
-      }
+      const shared = await sharingRoutes({
+        db,
+        s,
+        url,
+        path,
+        post,
+        body,
+        now,
+        env,
+      });
+      if (shared) return shared;
+      const config = await configRoute({ db, s, url, path, post, body });
+      if (config) return config;
       const installed = await installationRoutes({
         db,
         s,
@@ -327,7 +328,7 @@ export function createHandler({
         return json({ success: true });
       }
       const d = await ownDevice(db, s, url),
-        policy = JSON.parse(s.policy_json);
+        policy = devicePolicy(d);
       if (path === "/admin/lan/pair" && post) {
         await rateLimit(db, "lan-pair:" + s.household_id, 15, 60000, now);
         return json(await pairLan(db, s.household_id, d, body, now));
@@ -438,6 +439,7 @@ export function createHandler({
         return json(healthFor(d, now));
       }
       if (path === "/admin/device_update" && post) {
+        requireOwner(d, s);
         const statements = [];
         if (body.label !== undefined) {
           if (
@@ -468,6 +470,7 @@ export function createHandler({
         return json({ success: true });
       }
       if (path === "/admin/delete_device" && post) {
+        requireOwner(d, s);
         await db
           .prepare("DELETE FROM devices WHERE id=? AND household_id=?")
           .bind(d.id, s.household_id)

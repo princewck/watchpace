@@ -1,0 +1,13 @@
+<resources>
+  <string name="accessibility_description">保護者の設定に従って動画を一時停止し、休憩を知らせます。画面の文字を読み取ったり、リモコン操作を妨げたりしません。</string>
+  <string name="break_pause_title">テレビを少し休みましょう</string>
+  <string name="break_pause_body">保護者が視聴を一時停止しました。\nスマートフォンのアプリで一時停止を解除してください。\n視聴できるようになると、この画面は自動で閉じます。</string>
+  <string name="break_limit_title">今日の視聴時間が終わりました</string>
+  <string name="break_limit_body">今は少し休みましょう。\n続けて見る場合は、保護者がスマートフォンで時間を追加できます。\n視聴できるようになると、この画面は自動で閉じます。</string>
+  <string name="break_rest_title">今は休憩時間です</string>
+  <string name="break_rest_body">家族で決めた休憩時間になりました。\n休んでから、また来てください。\n保護者がスマートフォンで予定を変更することもできます。</string>
+  <string name="break_allow_title">また視聴できます</string>
+  <string name="break_allow_body">前の画面に戻っています…\n自動で戻らない場合は、リモコンの戻るボタンを押してください。\n動画に戻ったら、再生ボタンで続きを見られます。</string>
+  <string name="break_wait_title">視聴の設定を確認しています</string>
+  <string name="break_wait_body">しばらくお待ちください。\nこの画面が続く場合は、保護者がスマートフォンでテレビの接続状況を確認してください。</string>
+</resources>

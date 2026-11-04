@@ -108,21 +108,28 @@ actor TVAPI {
   }
   func request<T: Decodable>(
     _ path: String, auth: SavedSession, device: String? = nil, body: [String: Any]? = nil,
-    timeout: TimeInterval? = nil
+    timeout: TimeInterval? = nil, query: [String: String] = [:]
   ) async throws -> T {
     let (data, _) = try await send(
-      origin: auth.origin, path: path, auth: auth, device: device, body: body, timeout: timeout)
+      origin: auth.origin, path: path, auth: auth, device: device, body: body, timeout: timeout,
+      query: query)
     do { return try JSONDecoder().decode(T.self, from: data) } catch {
       throw TVError.message(L10n.tr("服务返回的数据不兼容，请更新服务或稍后重试。"))
     }
   }
   private func send(
     origin: URL, path: String, auth: SavedSession? = nil, device: String? = nil,
-    body: [String: Any]? = nil, timeout: TimeInterval? = nil
+    body: [String: Any]? = nil, timeout: TimeInterval? = nil, query: [String: String] = [:]
   ) async throws -> (Data, HTTPURLResponse) {
     var parts = URLComponents(
       url: origin.appendingPathComponent(String(path.dropFirst())), resolvingAgainstBaseURL: false)!
-    if let device { parts.queryItems = [URLQueryItem(name: "device", value: device)] }
+    var parameters = query
+    if let device { parameters["device"] = device }
+    if !parameters.isEmpty {
+      parts.queryItems = parameters.sorted { $0.key < $1.key }.map {
+        URLQueryItem(name: $0.key, value: $0.value)
+      }
+    }
     var request = URLRequest(url: parts.url!)
     request.httpMethod = body == nil ? "GET" : "POST"
     if let timeout { request.timeoutInterval = timeout }

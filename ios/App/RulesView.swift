@@ -5,6 +5,7 @@ struct RulesView: View {
   @State private var editing = false
   var body: some View {
     List {
+      TVSelectionSection()
       if store.demo { Section { DemoBanner() } }
       if !store.policyLoaded {
         Section {
@@ -154,7 +155,7 @@ struct PolicyEditor: View {
             }
           }
         }
-        Section { Text(L10n.tr("保存后对家庭内所有电视生效。电视需要连接服务才能获取新规则。")) }
+        Section { Text(L10n.tr("只修改当前选择的电视，其他电视不受影响。新规则送达电视后生效。")) }
       }
       .navigationTitle(L10n.tr("编辑规则")).navigationBarTitleDisplayMode(.inline)
       .toolbar {
