@@ -27,6 +27,7 @@ struct DeviceSetupView: View {
           Section { NavigationLink(L10n.tr("分享此电视")) { TVShareView(deviceID: device.id) } }
         }
         if !store.demo {
+          Section { NavigationLink(L10n.tr("电视客户端更新")) { TVUpdateView(deviceID: deviceID) } }
           Section {
             Button(device.isOwner ? L10n.tr("移除电视") : L10n.tr("退出共享"), role: .destructive) {
               confirmRemove = true

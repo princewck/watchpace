@@ -243,6 +243,7 @@ export function createHandler({
           execution_receipts: true,
           household_delete: true,
           staged_rules: false,
+          session_rules: true,
           registration: true,
           paid_history: env.OFFICIAL_CLOUD !== "false",
           history_access: await operatorHistoryFor(

@@ -3,6 +3,7 @@ import SwiftUI
 struct RulesView: View {
   @Environment(FamilyStore.self) private var store
   @State private var editing = false
+  @State private var choosingAge = false
   var body: some View {
     List {
       TVSelectionSection()
@@ -27,8 +28,21 @@ struct RulesView: View {
         if let limit = store.policy.daily_limit_seconds {
           Section(L10n.tr("每日观看上限")) {
             LabeledContent(L10n.tr("每天"), value: limit.durationText)
+            if store.capabilities?.session_rules == true || store.demo {
+              Button(L10n.tr("按年龄选择建议")) { choosingAge = true }
+                .font(.footnote).accessibilityIdentifier("chooseAgePreset")
+            }
             Text(L10n.tr("每日额度按北京时间午夜重置，临时额度可以额外放行。")).font(.footnote).foregroundStyle(
               Color("SupportingText"))
+          }
+        }
+        if let session = store.policy.session_limit_seconds {
+          Section(L10n.tr("单次观看与休息")) {
+            LabeledContent(L10n.tr("每次最多"), value: session.durationText)
+            LabeledContent(
+              L10n.tr("至少休息"), value: (store.policy.session_break_seconds ?? 300).durationText)
+            Text(L10n.tr("短暂停顿仍算同一次观看；连续停止播放满休息时长，才开始新一轮。临时额度不会跳过这段休息。"))
+              .font(.footnote).foregroundStyle(Color("SupportingText"))
           }
         }
         if store.capabilities?.staged_rules != false {
@@ -73,6 +87,11 @@ struct RulesView: View {
       }
     }
     .navigationTitle(L10n.tr("观看规则"))
+    .sheet(isPresented: $choosingAge) {
+      NavigationStack {
+        AgeViewingPresetsView(policy: store.policy) { await store.savePolicy($0) }
+      }
+    }
     .sheet(isPresented: $editing) {
       PolicyEditor(policy: store.policy).demoExitFloating(reservingSpace: true)
     }
@@ -92,6 +111,7 @@ struct PolicyEditor: View {
   @State private var draft: ViewingPolicy
   @State private var discard = false
   @State private var confirmShortIntervals = false
+  @State private var choosingAge = false
   private let original: ViewingPolicy
   init(policy: ViewingPolicy) {
     original = policy
@@ -112,13 +132,40 @@ struct PolicyEditor: View {
                 L10n.tr("每天最多"),
                 Binding(
                   get: { draft.daily_limit_seconds ?? 5400 },
-                  set: { draft.daily_limit_seconds = $0 }), range: 1...1440)
+                  set: { draft.daily_limit_seconds = $0 }), range: 0...1440)
             }
             Text(
               store.capabilities?.staged_rules == false
                 ? L10n.tr("按北京时间午夜重置。临时额度可以额外放行；家长暂停优先于临时额度。")
                 : L10n.tr("按北京时间午夜重置；阶段额度同时生效。临时额度可额外放行，家长暂停优先于临时额度。")
             ).font(.footnote).foregroundStyle(Color("SupportingText"))
+          }
+        }
+        if store.capabilities?.session_rules == true || store.demo {
+          Section(L10n.tr("单次观看与休息")) {
+            Button(L10n.tr("按年龄选择建议")) { choosingAge = true }
+              .font(.footnote).accessibilityIdentifier("chooseAgePreset")
+            Toggle(
+              L10n.tr("限制单次观看时长"),
+              isOn: Binding(
+                get: { draft.session_limit_seconds != nil },
+                set: { draft.session_limit_seconds = $0 ? 900 : nil })
+            )
+            .disabled(
+              !store.demo && (store.selected?.session_rules_version ?? 0) < 1
+                && draft.session_limit_seconds == nil)
+            if draft.session_limit_seconds != nil {
+              minutes(
+                L10n.tr("每次最多"),
+                Binding(
+                  get: { draft.session_limit_seconds ?? 900 },
+                  set: { draft.session_limit_seconds = $0 }), range: 1...240)
+              minutes(
+                L10n.tr("至少休息"),
+                Binding(
+                  get: { draft.session_break_seconds ?? 300 },
+                  set: { draft.session_break_seconds = $0 }), range: 5...120)
+            }
           }
         }
         if store.capabilities?.staged_rules != false {
@@ -156,6 +203,14 @@ struct PolicyEditor: View {
           }
         }
         Section { Text(L10n.tr("只修改当前选择的电视，其他电视不受影响。新规则送达电视后生效。")) }
+      }
+      .sheet(isPresented: $choosingAge) {
+        NavigationStack {
+          AgeViewingPresetsView(policy: draft) { value in
+            draft = value
+            return true
+          }
+        }
       }
       .navigationTitle(L10n.tr("编辑规则")).navigationBarTitleDisplayMode(.inline)
       .toolbar {

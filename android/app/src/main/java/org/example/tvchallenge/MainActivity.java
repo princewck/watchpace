@@ -79,6 +79,11 @@ public class MainActivity extends Activity {
       if ("allow".equals(state.optString("status"))) {
         show(R.string.break_allow_title, R.string.break_allow_body);
       } else switch (state.optString("lock_reason")) {
+        case "session_limit":
+          screen.showSession(
+            state.optInt("session_break_remaining_seconds", 300)
+          );
+          break;
         case "parent_paused":
           show(R.string.break_pause_title, R.string.break_pause_body);
           break;

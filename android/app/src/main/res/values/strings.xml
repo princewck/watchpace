@@ -10,4 +10,15 @@
   <string name="break_allow_body">正在返回刚才的页面…\n如果没有自动返回，请按遥控器返回键。\n回到视频后，按播放继续观看。</string>
   <string name="break_wait_title">正在确认观看安排</string>
   <string name="break_wait_body">请稍等一会儿。\n如果一直停在这里，请家长在手机上查看这台电视的连接状态。</string>
+  <string name="break_session_title">已到单次推荐观看时长</string>
+  <string name="break_session_body">先离开屏幕，休息一下。\n休息满设定时间后可以继续。\n页面会在允许观看时自动关闭，回到视频后按播放。</string>
+  <string name="break_session_countdown">还需休息 %1$d:%2$02d</string>
+  <string name="update_title">更新电视时间</string>
+  <string name="update_confirm_body">安装包已经校验。确认后会打开系统安装页面，现有绑定和观看记录会保留。</string>
+  <string name="update_permission_body">电视需要你允许“电视时间”安装应用。打开权限设置，允许后返回这里继续。</string>
+  <string name="update_install">继续安装</string>
+  <string name="update_open_permission">打开安装权限</string>
+  <string name="update_permission_unavailable">电视不提供这项权限，请使用电脑安装引导。</string>
+  <string name="update_waiting">请在系统页面确认安装。</string>
+  <string name="update_failed">更新未完成，原客户端仍保留。可以取消或重试。</string>
 </resources>

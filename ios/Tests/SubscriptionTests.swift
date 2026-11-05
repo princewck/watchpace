@@ -9,6 +9,7 @@ final class SubscriptionTests: XCTestCase {
     let url = try XCTUnwrap(
       Bundle(for: Self.self).url(forResource: "FamilyTV", withExtension: "storekit"))
     let session = try SKTestSession(contentsOf: url)
+    session.resetToDefaultState()
     session.disableDialogs = true
     session.clearTransactions()
     defer { session.clearTransactions() }

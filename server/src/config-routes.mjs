@@ -1,4 +1,4 @@
-import { json } from "./security.mjs";
+import { json, HTTPError } from "./security.mjs";
 import { validatePolicy } from "./policy.mjs";
 import { ownDevice, devicePolicy } from "./device-access.mjs";
 
@@ -8,6 +8,11 @@ export async function configRoute({ db, s, url, path, post, body }) {
     const d = await ownDevice(db, s, url);
     if (!post) return json({ policy: devicePolicy(d) });
     const policy = validatePolicy(body.policy);
+    if (policy.session_limit_seconds !== null && d.session_rules_version < 1)
+      throw new HTTPError(
+        409,
+        "Update the TV client before enabling session rules",
+      );
     await db
       .prepare(
         "UPDATE devices SET policy_json=?,revision=revision+1 WHERE id=?",
@@ -19,6 +24,8 @@ export async function configRoute({ db, s, url, path, post, body }) {
   // Compatibility: requests with no TV retain the household default for future installations.
   if (!post) return json({ policy: JSON.parse(s.policy_json) });
   const policy = validatePolicy(body.policy);
+  if (policy.session_limit_seconds !== null)
+    throw new HTTPError(400, "Select a compatible TV for session rules");
   await db.batch([
     db
       .prepare("UPDATE households SET policy_json=? WHERE id=?")

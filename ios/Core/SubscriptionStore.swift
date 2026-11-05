@@ -23,6 +23,7 @@ import StoreKit
     guard let familyID, let token = UUID(uuidString: familyID) else { return false }
     return entitled && accountTokens.contains(token)
   }
+  @ObservationIgnored private var productLoad: Task<Void, Never>?
   var loading = false
   var purchasing = false
   var message: String?
@@ -34,7 +35,6 @@ import StoreKit
       for await _ in Storefront.updates {
         guard !Task.isCancelled else { return }
         guard self?.product != nil else { continue }
-        self?.product = nil
         await self?.load()
       }
     }
@@ -63,7 +63,19 @@ import StoreKit
     purchaseIntents?.cancel()
   }
   func load() async {
-    guard !loading else { return }
+    if let productLoad {
+      await productLoad.value
+      return
+    }
+    let task = Task<Void, Never> { [weak self] in
+      guard let self else { return }
+      await self.fetchProduct()
+    }
+    productLoad = task
+    await task.value
+    productLoad = nil
+  }
+  private func fetchProduct() async {
     message = nil
     loading = true
     defer { loading = false }

@@ -11,6 +11,7 @@ struct LanReceipt: Decodable {
   var pending_sync: Int?
   var sync_outcome: String?
   var error: String?
+  var update: TVUpdateReceipt?
 }
 struct LanDelivery {
   var state: PlaybackState
@@ -171,6 +172,28 @@ struct LanDelivery {
       } catch is CancellationError { throw CancellationError() } catch { continue }
     }
     throw TVError.message(L10n.tr("本地电视未响应，将尝试云端。"))
+  }
+  func sendUpdate(_ payload: [String: Any], device: String, revision: Int) async throws
+    -> TVUpdateReceipt
+  {
+    guard !busy, isPaired(with: device), let identity else {
+      throw TVError.message(L10n.tr("请先为这台电视开启局域网直连，并连接同一 Wi-Fi。"))
+    }
+    busy = true
+    defer { busy = false }
+    let envelope = try identity.envelope(
+      device: device, revision: max(1, revision), payload: payload)
+    for attempt in 0..<3 {
+      do {
+        let receipt = try await local(envelope)
+        guard let update = receipt.update else { throw TVError.message(L10n.tr("电视客户端尚不支持手机升级。")) }
+        return update
+      } catch {
+        if attempt == 2 { throw error }
+        try await Task.sleep(for: .milliseconds(400))
+      }
+    }
+    throw TVError.message(L10n.tr("更新传输未完成，请重试。"))
   }
   func isPaired(with device: String) -> Bool { paired && boundDevice == device }
   func refreshState(device: String, revision: Int) async -> LanReceipt? {

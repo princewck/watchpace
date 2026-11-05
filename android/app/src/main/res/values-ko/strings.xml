@@ -10,4 +10,15 @@
   <string name="break_allow_body">이전 화면으로 돌아가는 중입니다…\n자동으로 돌아가지 않으면 리모컨의 뒤로 버튼을 눌러 주세요.\n영상으로 돌아가면 재생 버튼을 눌러 계속 보세요.</string>
   <string name="break_wait_title">시청 설정을 확인하고 있어요</string>
   <string name="break_wait_body">잠시 기다려 주세요.\n이 화면이 계속되면 보호자가 휴대전화에서 TV 연결 상태를 확인해 주세요.</string>
+  <string name="break_session_title">이번 시청 시간이 끝났어요</string>
+  <string name="break_session_body">화면에서 눈을 떼고 쉬어 주세요.\n설정한 휴식 시간이 지나면 다시 볼 수 있어요.\n시청이 허용되면 이 화면이 닫힙니다. 영상으로 돌아가 재생을 눌러 주세요.</string>
+  <string name="break_session_countdown">남은 휴식: %1$d:%2$02d</string>
+  <string name="update_title">TV 클라이언트 업데이트</string>
+  <string name="update_confirm_body">업데이트 파일을 확인했습니다. 계속하면 시스템 설치 화면이 열립니다. 연결 설정과 시청 기록은 유지됩니다.</string>
+  <string name="update_permission_body">TV 설정에서 이 앱의 설치 권한을 허용한 뒤 이 화면으로 돌아와 주세요.</string>
+  <string name="update_install">설치 계속</string>
+  <string name="update_open_permission">설치 권한 열기</string>
+  <string name="update_permission_unavailable">이 TV에서는 해당 권한을 설정할 수 없습니다. 컴퓨터 설치 안내를 이용해 주세요.</string>
+  <string name="update_waiting">시스템 화면에서 설치를 확인해 주세요.</string>
+  <string name="update_failed">업데이트가 완료되지 않았습니다. 기존 앱은 그대로 있습니다. 취소하거나 다시 시도해 주세요.</string>
 </resources>

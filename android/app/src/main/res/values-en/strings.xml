@@ -10,4 +10,15 @@
   <string name="break_allow_body">Returning to the previous screen…\nIf it stays here, press Back on the remote.\nPress Play when you return to your video.</string>
   <string name="break_wait_title">Checking your viewing time</string>
   <string name="break_wait_body">Please wait a moment.\nIf this screen stays here, ask a parent to check the TV connection in the phone app.</string>
+  <string name="break_session_title">Time for a viewing break</string>
+  <string name="break_session_body">You’ve reached this session’s limit.\nTake a break away from the screen.\nThis screen closes when viewing is allowed. Press Play when you return to your video.</string>
+  <string name="break_session_countdown">Break remaining: %1$d:%2$02d</string>
+  <string name="update_title">Update Watchpace TV</string>
+  <string name="update_confirm_body">The update has been checked. Continue to Android’s installer. Your pairing and viewing records will be kept.</string>
+  <string name="update_permission_body">Allow this app to install updates in TV settings, then return here to continue.</string>
+  <string name="update_install">Continue installation</string>
+  <string name="update_open_permission">Open installation permission</string>
+  <string name="update_permission_unavailable">This TV does not offer this permission. Use the computer setup guide.</string>
+  <string name="update_waiting">Confirm installation on the system screen.</string>
+  <string name="update_failed">Update not completed. The existing app is still installed. Cancel or try again.</string>
 </resources>

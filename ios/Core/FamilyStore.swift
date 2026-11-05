@@ -77,7 +77,7 @@ enum DataLoadState: Equatable {
     devices = [
       TVDevice(
         device_name: "demo-living", label: L10n.tr("客厅电视"), enabled: 1,
-        last_heartbeat_ms: Date.now.timeIntervalSince1970 * 1000),
+        last_heartbeat_ms: Date.now.timeIntervalSince1970 * 1000, session_rules_version: 1),
       TVDevice(
         device_name: "demo-bedroom", label: L10n.tr("卧室电视"), enabled: 1, last_heartbeat_ms: nil),
     ]
@@ -85,7 +85,7 @@ enum DataLoadState: Equatable {
     policy = ViewingPolicy(
       banned_windows: [QuietWindow(id: "demo-bedtime")], daily_limit_seconds: 5400)
     capabilities = MobileCapabilities(
-      version: 1, pause: true, daily_limit: true, execution_receipts: true, staged_rules: false)
+      version: 1, pause: true, daily_limit: true, execution_receipts: true, session_rules: true, staged_rules: false)
     usage = DemoData.usage()
     lastRefresh = .now
   }

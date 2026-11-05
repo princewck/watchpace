@@ -236,11 +236,7 @@ public class MonitorService extends Service {
         body.put("app", watched ? app : "android");
         body.put("is_playing", samplePlaying);
         body.put("event_id", UUID.randomUUID().toString());
-        body.put("client_mode", "native");
-        if (lan != null) {
-          body.put("lan_version", 1);
-          body.put("lan_certificate_sha256", lan.fingerprint());
-        }
+        ClientCapabilities.append(this, body, lan);
         body.put("permissions_ok", permissions);
         body.put(
           "adb_enabled",

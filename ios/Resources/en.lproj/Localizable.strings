@@ -656,3 +656,57 @@
 "应用" = "App";
 "时段按北京时间汇总，采样可能有约10秒误差。" = "Hourly totals use Beijing time. Recorded times may be off by about 10 seconds.";
 "暂时无法读取时段明细，请重试。" = "Can't load time-of-day details right now. Try again.";
+
+// Age presets and viewing-session limits.
+"选一个适合家庭的起点，再根据实际情况调整。无需填写孩子生日。" = "Choose a starting point for your family, then adjust it as needed. No child's birthday required.";
+"按年龄选择" = "Choose by age";
+"这台电视需更新客户端，才能应用带有单次时长限制的预设。" = "Update the TV companion app to use presets with a per-session viewing limit.";
+"这些设置从哪里来" = "Where these settings come from";
+"世界卫生组织建议：1岁儿童不安排久坐屏幕时间；2至4岁每天不超过1小时，越少越好。" = "The World Health Organization recommends no sedentary screen time for 1-year-olds. For ages 2–4, it recommends no more than one hour a day; less is better.";
+"阅读 WHO 幼儿活动与屏幕时间指南" = "Read the WHO guidelines on activity and screen time for young children";
+"美国儿科学会的幼儿媒体建议强调：18个月以下避免使用屏幕（视频通话除外）；18至24个月如开始接触，应选择优质内容并由家长陪同。" = "The American Academy of Pediatrics recommends avoiding screens before 18 months, except for video calls. For ages 18–24 months, if media is introduced, choose high-quality content and watch together with a parent.";
+"阅读 AAP 幼儿媒体使用建议（2016）" = "Read the AAP guidance on young children and media (2016)";
+"澳大利亚卫生部门建议：5至17岁每天的久坐娱乐屏幕时间不超过2小时。" = "Australian health authorities recommend no more than two hours of sedentary recreational screen time a day for ages 5–17.";
+"阅读澳大利亚儿童与青少年活动指南" = "Read the Australian activity guidelines for children and young people";
+"18至24个月每天30分钟、每次15分钟和至少休息5分钟是本产品的可选预设，并非上述机构共同规定的标准。预设额度不是建议看满的时间。请把手机、平板等其他屏幕时间也算进去，优先保证睡眠、活动和家人陪伴。" = "The 30-minute daily limit for ages 18–24 months, 15-minute sessions and breaks of at least five minutes are optional product presets, not a shared standard set by these organizations. Preset limits aren't targets to fill. Count time on phones, tablets and other screens too, and prioritize sleep, activity and time together as a family.";
+"年龄建议" = "Age presets";
+"覆盖现有观看设置？" = "Replace existing viewing settings?";
+"确认覆盖" = "Replace settings";
+"将覆盖每日额度、单次观看上限和休息时长。已有休息时段保持不变。\n{p0}" = "This replaces the daily viewing limit, per-session limit and break length. Existing scheduled breaks stay unchanged.\n{p0}";
+"18个月以下" = "Under 18 months";
+"18至不足24个月" = "18 to under 24 months";
+"24至不足72个月" = "24 to under 72 months";
+"72个月及以上" = "72 months and older";
+"不推荐观看，预设每日额度为0。" = "Viewing isn't recommended. This preset sets the daily limit to zero.";
+"每天最多30分钟，每次最多15分钟；每次休息至少5分钟。" = "Up to 30 minutes a day and 15 minutes per session, with a break of at least five minutes each time.";
+"每天最多1小时，每次最多15分钟；每次休息至少5分钟。" = "Up to one hour a day and 15 minutes per session, with a break of at least five minutes each time.";
+"每天最多2小时，不设置单次观看上限。" = "Up to two hours a day, with no per-session limit.";
+"按年龄选择建议" = "Choose an age preset";
+"单次观看与休息" = "Viewing sessions and breaks";
+"每次最多" = "Per-session maximum";
+"至少休息" = "Minimum break";
+"短暂停顿仍算同一次观看；连续停止播放满休息时长，才开始新一轮。临时额度不会跳过这段休息。" = "Brief pauses still count as part of the same viewing session. A new session starts only after playback has stopped for the full break length. Extra viewing time doesn't skip this break.";
+"限制单次观看时长" = "Limit each viewing session";
+
+// TV update transfer and on-TV installation confirmation.
+"最新发布版本" = "Latest released version";
+"这台电视尚未支持手机升级，需要先通过电脑安装一次带有升级功能的客户端。之后可在同一 Wi-Fi 下从这里发起更新。" = "This TV doesn't support updates from your phone yet. First use a computer to install a companion app with update support. After that, you can start updates here while both devices are on the same Wi-Fi.";
+"打开安装引导" = "Open setup guide";
+"电视已是最新发布版本" = "The TV is on the latest released version";
+"手机先下载并校验安装包，再通过加密直连传给电视。最后请用遥控器确认安装；绑定和观看记录会保留。" = "Connect your phone and TV to the same Wi-Fi. Your phone downloads and verifies the update package, then sends it to the TV over an encrypted direct connection. Use the TV remote to confirm installation. The TV's link to your family account and its viewing records will be kept.";
+"开启局域网直连" = "Enable home network connection";
+"下载并传送更新" = "Download and send update";
+"检查升级结果" = "Check update status";
+"如果电视提示不允许安装，请进入电视显示的权限页面，允许“电视时间”安装应用，然后返回确认。部分电视会限制此权限；此时请使用电脑安装引导。更新过程可能暂时中断观看。" = "If the TV blocks installation, open the permission screen it shows and allow the TV companion app to install apps. Then return to confirm installation. Some TVs restrict this permission; use the computer setup guide if that happens. Updating may briefly interrupt viewing.";
+"电视客户端更新" = "TV app update";
+"正在下载安装包…" = "Downloading update package…";
+"正在传送到电视…" = "Sending to the TV…";
+"更新传输未完成，请重试。" = "The update transfer didn't finish. Try again.";
+"安装包已送达，请在电视上确认安装。完成后点“检查升级结果”。" = "Update package delivered. Confirm installation on the TV. When it's done, tap Check update status.";
+"更新未完成，原客户端仍保留。请确认电视与手机连接同一 Wi-Fi，然后重试。" = "The update isn't complete. Your existing TV app is still installed. Check that your phone and TV are on the same Wi-Fi, then try again.";
+"安装包校验未通过，未发送到电视。请稍后重试。" = "The update package failed verification and wasn't sent to the TV. Try again later.";
+"更新信息无效，请联系支持。" = "The update information isn't valid. Contact support.";
+"暂时无法下载电视更新，请稍后重试。" = "Can't download the TV update right now. Try again later.";
+"安装包大小异常，已停止下载。" = "The package size didn't match. Download stopped.";
+"请先为这台电视开启局域网直连，并连接同一 Wi-Fi。" = "Enable home network connection for this TV first, and connect your phone and TV to the same Wi-Fi.";
+"电视客户端尚不支持手机升级。" = "The TV app doesn't support updates from your phone yet.";

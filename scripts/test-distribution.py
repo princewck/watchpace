@@ -53,6 +53,14 @@ class DistributionTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "versionName"):
             gate.check(self.root)
 
+    def test_stale_latest_tv_manifest_fails(self):
+        p = self.root / "server/public/downloads/tv/latest.json"
+        value = json.loads(p.read_text())
+        value["apk"]["version_code"] += 1
+        p.write_text(json.dumps(value))
+        with self.assertRaisesRegex(ValueError, "Latest TV manifest is stale"):
+            gate.check(self.root)
+
     def test_stale_generated_app_url_fails(self):
         self.replace("ios/Core/ReleaseDownloads.swift", f"/{self.version}/", "/0.0.0/")
         with self.assertRaisesRegex(ValueError, "App download URL is stale"):

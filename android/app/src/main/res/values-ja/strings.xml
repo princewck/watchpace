@@ -10,4 +10,15 @@
   <string name="break_allow_body">前の画面に戻っています…\n自動で戻らない場合は、リモコンの戻るボタンを押してください。\n動画に戻ったら、再生ボタンで続きを見られます。</string>
   <string name="break_wait_title">視聴の設定を確認しています</string>
   <string name="break_wait_body">しばらくお待ちください。\nこの画面が続く場合は、保護者がスマートフォンでテレビの接続状況を確認してください。</string>
+  <string name="break_session_title">今回の視聴時間に達しました</string>
+  <string name="break_session_body">画面から離れて休憩しましょう。\n設定した休憩時間が終わると再び視聴できます。\n視聴可能になるとこの画面は閉じます。動画に戻ったら再生してください。</string>
+  <string name="break_session_countdown">休憩終了まで %1$d:%2$02d</string>
+  <string name="update_title">テレビクライアントの更新</string>
+  <string name="update_confirm_body">更新ファイルを確認しました。続行するとシステムのインストール画面が開きます。接続設定と視聴記録は保持されます。</string>
+  <string name="update_permission_body">設定でこのアプリからのインストールを許可し、この画面に戻ってください。</string>
+  <string name="update_install">インストールを続ける</string>
+  <string name="update_open_permission">インストールの権限を開く</string>
+  <string name="update_permission_unavailable">このテレビでは権限を設定できません。パソコンの設定ガイドをご利用ください。</string>
+  <string name="update_waiting">システム画面でインストールを確認してください。</string>
+  <string name="update_failed">更新は完了していません。既存のアプリは残っています。キャンセルするか再試行してください。</string>
 </resources>

@@ -1,3 +1,4 @@
+import { viewingSession } from "./viewing-session.mjs";
 import { HTTPError } from "./security.mjs";
 export const DEFAULT_POLICY = {
   initial_seconds: 1800,
@@ -8,6 +9,8 @@ export const DEFAULT_POLICY = {
   default_grant_seconds: 900,
   daily_limit_seconds: 5400,
   banned_windows: [],
+  session_limit_seconds: null,
+  session_break_seconds: 300,
 };
 export const dayOf = (now) =>
   new Date(now + 8 * 3600000).toISOString().slice(0, 10);
@@ -24,9 +27,24 @@ export function validatePolicy(input) {
   ])
     if (
       !(key === "daily_limit_seconds" && value[key] === null) &&
-      (!Number.isInteger(value[key]) || value[key] < 60 || value[key] > 86400)
+      (!Number.isInteger(value[key]) ||
+        value[key] < (key === "daily_limit_seconds" ? 0 : 60) ||
+        value[key] > 86400)
     )
       throw new HTTPError(400, "Invalid " + key);
+  if (
+    value.session_limit_seconds !== null &&
+    (!Number.isInteger(value.session_limit_seconds) ||
+      value.session_limit_seconds < 60 ||
+      value.session_limit_seconds > 86400)
+  )
+    throw new HTTPError(400, "Invalid session limit");
+  if (
+    !Number.isInteger(value.session_break_seconds) ||
+    value.session_break_seconds < 300 ||
+    value.session_break_seconds > 86400
+  )
+    throw new HTTPError(400, "Invalid session break");
   if (!Array.isArray(value.banned_windows) || value.banned_windows.length > 32)
     throw new HTTPError(400, "Invalid windows");
   value.banned_windows = value.banned_windows.map((w) => {
@@ -82,6 +100,7 @@ export async function stateFor(db, device, policy, now) {
     limit = policy.daily_limit_seconds ?? 86400,
     bonus = device.bonus_expires_ms > now ? device.bonus_seconds : 0;
   const ban = bannedAt(policy, now);
+  const session = await viewingSession(db, device, policy, now);
   let reason =
     bonus > 0
       ? null
@@ -90,17 +109,28 @@ export async function stateFor(db, device, policy, now) {
         : watched >= limit
           ? "daily_limit"
           : null;
+  if (session.session_break_remaining_seconds > 0) reason = "session_limit";
   if (device.paused) reason = "parent_paused";
   return {
+    ...session,
     day: dayOf(now),
     status: reason ? "lock" : "allow",
     lock_reason: reason,
     stage: 0,
     stage_used_seconds: watched,
     stage_budget_seconds: limit,
-    remaining_seconds: device.paused
-      ? 0
-      : bonus || Math.max(0, limit - watched),
+    remaining_seconds:
+      device.paused || session.session_break_remaining_seconds > 0
+        ? 0
+        : Math.min(
+            bonus || Math.max(0, limit - watched),
+            policy.session_limit_seconds == null
+              ? 86400
+              : Math.max(
+                  0,
+                  policy.session_limit_seconds - session.session_used_seconds,
+                ),
+          ),
     daily_limit_seconds: limit,
     watched_seconds: watched,
     override_seconds: bonus,

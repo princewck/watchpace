@@ -120,6 +120,8 @@ final class BreakScreenView extends FrameLayout {
     int actionKind = BreakStatusIcon.PHONE;
     if (heading == R.string.break_pause_title) kind = BreakStatusIcon.PAUSE;
     if (heading == R.string.break_limit_title) kind = BreakStatusIcon.CLOCK;
+    if (heading == R.string.break_session_title) actionKind =
+      BreakStatusIcon.CLOCK;
     if (heading == R.string.break_rest_title) actionKind =
       BreakStatusIcon.CLOCK;
     if (heading == R.string.break_allow_title) {
@@ -129,6 +131,17 @@ final class BreakScreenView extends FrameLayout {
     if (heading == R.string.break_wait_title) kind = BreakStatusIcon.WAIT;
     status.setKind(kind);
     action.setKind(actionKind);
+  }
+
+  void showSession(int seconds) {
+    show(R.string.break_session_title, R.string.break_session_body);
+    next.setText(
+      getResources().getString(
+        R.string.break_session_countdown,
+        Math.max(0, seconds) / 60,
+        Math.max(0, seconds) % 60
+      )
+    );
   }
 
   void setActive(boolean active) {

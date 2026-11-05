@@ -68,6 +68,9 @@ def main():
     (ROOT / "installer/downloads.json").write_text(
         json.dumps(release, ensure_ascii=False, indent=2) + "\n"
     )
+    (PUBLIC / "downloads/tv/latest.json").write_text(
+        json.dumps({"apk": apk}, indent=2) + "\n"
+    )
     print(
         json.dumps(
             {

@@ -74,9 +74,25 @@ final class LanControl {
       if (
         !(v instanceof Number) ||
         ((Number) v).doubleValue() != ((Number) v).longValue() ||
-        p.getLong(key) < 60 ||
+        p.getLong(key) < (key.equals("daily_limit_seconds") ? 0 : 60) ||
         p.getLong(key) > 86400
       ) throw new SecurityException("Invalid policy");
+    }
+    if (!p.isNull("session_limit_seconds")) {
+      Object value = p.get("session_limit_seconds");
+      if (
+        !(value instanceof Integer) ||
+        p.getInt("session_limit_seconds") < 60 ||
+        p.getInt("session_limit_seconds") > 86400
+      ) throw new SecurityException("Invalid session limit");
+    }
+    if (p.has("session_break_seconds") && !p.isNull("session_break_seconds")) {
+      Object value = p.get("session_break_seconds");
+      if (
+        !(value instanceof Integer) ||
+        p.getInt("session_break_seconds") < 300 ||
+        p.getInt("session_break_seconds") > 86400
+      ) throw new SecurityException("Invalid session break");
     }
     JSONArray windows = p.getJSONArray("banned_windows");
     if (windows.length() > 32) throw new SecurityException("Too many windows");
@@ -159,7 +175,10 @@ final class LanControl {
       new String(base64(e.getString("payload"), 20000), StandardCharsets.UTF_8)
     );
     String kind = body.getString("kind");
-    if (kind.equals("status")) return body;
+    if (
+      kind.equals("status") ||
+      kind.matches("update_(begin|chunk|finish|status)")
+    ) return body;
     if (kind.equals("pause")) {
       if (!(body.get("paused") instanceof Boolean)) throw new SecurityException(
         "Boolean required"
@@ -183,6 +202,11 @@ final class LanControl {
       SharedPreferences p = NativeState.prefs(c);
       JSONObject body = verify(c, e);
       String kind = body.getString("kind");
+      if (kind.startsWith("update_")) {
+        JSONObject receipt = result(c, false);
+        receipt.put("update", SelfUpdate.handle(c, e, body));
+        return receipt;
+      }
       if (!kind.equals("status")) {
         String id = e.getString("request_id"),
           digest = digest(signingText(e));

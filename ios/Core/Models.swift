@@ -7,6 +7,9 @@ struct TVDevice: Codable, Identifiable, Equatable {
   var last_heartbeat_ms: Double?
   var household_id: String? = nil
   var household_name: String? = nil
+  var session_rules_version: Int? = nil
+  var update_protocol_version: Int? = nil
+  var client_version_code: Int? = nil
   var is_owner: Bool? = nil
   var isOwner: Bool { is_owner != false }
   var installation_complete: Bool? = nil
@@ -35,12 +38,16 @@ struct ViewingPolicy: Codable, Equatable {
   var default_grant_seconds = 900
   var banned_windows: [QuietWindow] = []
   var daily_limit_seconds: Int? = nil
+  var session_limit_seconds: Int? = nil
+  var session_break_seconds: Int? = 300
   var isValid: Bool {
     [
       initial_seconds, first_reward_seconds, second_reward_seconds, repeat_seconds,
       rest_reset_seconds, default_grant_seconds,
     ].allSatisfy { (60...86400).contains($0) }
-      && (daily_limit_seconds.map { (60...86400).contains($0) } ?? true)
+      && (daily_limit_seconds.map { (0...86400).contains($0) } ?? true)
+      && (session_limit_seconds.map { (60...86400).contains($0) } ?? true)
+      && (session_break_seconds.map { (300...86400).contains($0) } ?? true)
       && banned_windows.count <= 32
       && banned_windows.allSatisfy {
         !$0.days.isEmpty && $0.days.allSatisfy { (0...6).contains($0) } && Self.validTime($0.start)
@@ -71,6 +78,7 @@ struct MobileCapabilities: Codable {
   var pause: Bool
   var daily_limit: Bool
   var execution_receipts: Bool
+  var session_rules: Bool?
   var staged_rules: Bool?
   var registration: Bool?
   var household_delete: Bool?

@@ -66,6 +66,7 @@ final class OfflineState {
         now() - tail.getLong("at_ms") < 10000
       ) {
         tail.put("seconds", tail.getInt("seconds") + seconds);
+        tail.put("at_ms", now());
       } else queue.put(item);
       if (
         !p
@@ -226,6 +227,7 @@ final class OfflineState {
               ? "restricted_time"
               : "daily_limit"
       );
+      ViewingSession.apply(state, policy, queue(), now());
       return state;
     }
   }

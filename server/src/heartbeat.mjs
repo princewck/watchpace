@@ -118,13 +118,24 @@ export async function heartbeat(db, request, body, now, env) {
     typeof body.permissions_ok === "boolean"
       ? Number(body.permissions_ok)
       : null;
+  if (
+    body.session_rules_version !== undefined &&
+    body.session_rules_version !== 1
+  )
+    throw new HTTPError(400, "Unsupported session rules capability");
   const statements = [
     receipt,
     db
       .prepare(
-        `UPDATE devices SET boot_count=?,initial_boot=COALESCE(initial_boot,?),closed_at_boot=CASE WHEN ?=1 THEN NULL WHEN ?=0 THEN COALESCE(closed_at_boot,?) ELSE closed_at_boot END,adb_enabled=?,permissions_ok=?,applied_revision=CASE WHEN ? THEN ? ELSE applied_revision END,enforcement_result=CASE WHEN ? THEN ? ELSE enforcement_result END,applied_ms=CASE WHEN ? THEN ? ELSE applied_ms END,stopped_ms=CASE WHEN ? THEN ? ELSE stopped_ms END,resumed_ms=CASE WHEN ? THEN ? ELSE resumed_ms END WHERE id=? AND last_heartbeat_ms=?`,
+        `UPDATE devices SET session_rules_version=?,update_protocol_version=?,client_version_code=?,boot_count=?,initial_boot=COALESCE(initial_boot,?),closed_at_boot=CASE WHEN ?=1 THEN NULL WHEN ?=0 THEN COALESCE(closed_at_boot,?) ELSE closed_at_boot END,adb_enabled=?,permissions_ok=?,applied_revision=CASE WHEN ? THEN ? ELSE applied_revision END,enforcement_result=CASE WHEN ? THEN ? ELSE enforcement_result END,applied_ms=CASE WHEN ? THEN ? ELSE applied_ms END,stopped_ms=CASE WHEN ? THEN ? ELSE stopped_ms END,resumed_ms=CASE WHEN ? THEN ? ELSE resumed_ms END WHERE id=? AND last_heartbeat_ms=?`,
       )
       .bind(
+        body.session_rules_version === 1 ? 1 : 0,
+        body.update_protocol_version === 1 ? 1 : 0,
+        Number.isSafeInteger(body.client_version_code) &&
+          body.client_version_code > 0
+          ? body.client_version_code
+          : null,
         boot,
         boot,
         adb,
