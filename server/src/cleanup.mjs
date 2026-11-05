@@ -19,12 +19,12 @@ export async function cleanup(env, now = Date.now()) {
       now - 7 * 86400000,
     ),
     env.DB.prepare("DELETE FROM rate_limits WHERE reset_ms<=?").bind(now),
-    env.OFFICIAL_CLOUD === "false"
-      ? env.DB.prepare("DELETE FROM daily_usage WHERE day<?").bind(
-          dayOf(now - 29 * 86400000),
-        )
-      : env.DB.prepare(
-          `DELETE FROM daily_usage WHERE day<? OR (day<? AND device_id IN(SELECT d.id FROM devices d WHERE NOT EXISTS(SELECT 1 FROM subscriptions s WHERE s.household_id=d.household_id AND s.revoked=0 AND s.expires_ms>?)))`,
-        ).bind(dayOf(now - 29 * 86400000), dayOf(now), now),
+    env.DB.prepare("DELETE FROM hourly_usage WHERE day<?").bind(
+      dayOf(now - 179 * 86400000),
+    ),
+    // Retention is independent of Apple subscription and operator viewing permissions.
+    env.DB.prepare("DELETE FROM daily_usage WHERE day<?").bind(
+      dayOf(now - 179 * 86400000),
+    ),
   ]);
 }

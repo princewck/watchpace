@@ -36,7 +36,7 @@ node --env-file=.env node-runtime/init.mjs
 node --env-file=.env dist/node-server.mjs
 ```
 
-然后配置 HTTPS 反向代理。完整步骤、常驻运行、备份和恢复见[部署说明](docs/deployment.md)。自部署默认包含 30 天记录，不需要 Apple 签名密钥、商店账号或支付配置。
+然后配置 HTTPS 反向代理。完整步骤、常驻运行、备份和恢复见[部署说明](docs/deployment.md)。自部署默认包含 180 天记录，不需要 Apple 签名密钥、商店账号或支付配置。
 
 ## 项目结构
 

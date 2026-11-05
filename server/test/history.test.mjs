@@ -42,7 +42,7 @@ test("household deletion revokes sessions/devices and removes cloud history whil
     0,
   );
 });
-test("free historical storage is purged and account recovery rotates its credential", async (t) => {
+test("free history remains stored for 180 days and account recovery rotates its credential", async (t) => {
   const f = fixture(t),
     a = await f.register("family_a"),
     d = await f.install(a);
@@ -52,7 +52,7 @@ test("free historical storage is purged and account recovery rotates its credent
   await cleanup(f.env, f.now());
   assert.equal(
     f.db.db.prepare("SELECT COUNT(*) n FROM daily_usage").get().n,
-    0,
+    1,
   );
   const result = await f.call("/admin/recover", {
     username: "family_a",
@@ -166,4 +166,61 @@ test("expired unredeemed install tickets can rotate on the same device, but rede
   );
   const devices = await (await f.call("/admin/devices", null, a)).json();
   assert.equal(devices.devices.length, 1);
+});
+
+test("hourly history preserves samples once, survives cleanup and enforces TV and date access", async (t) => {
+  const f = fixture(t),
+    owner = await f.register("hours_owner"),
+    other = await f.register("hours_other");
+  const d = await f.install(owner);
+  f.env.OFFICIAL_CLOUD = "true";
+  const day = "2030-01-02",
+    id = randomUUID();
+  const insert = f.db.db.prepare(
+    "INSERT INTO usage_samples VALUES(?,?,?,?,?,?) ON CONFLICT(device_id,event_id) DO NOTHING",
+  );
+  insert.run(
+    d.device,
+    id,
+    day,
+    "com.ktcp.video",
+    10,
+    Date.parse(day + "T12:00:00+08:00"),
+  );
+  insert.run(
+    d.device,
+    id,
+    day,
+    "com.ktcp.video",
+    10,
+    Date.parse(day + "T12:00:00+08:00"),
+  );
+  const path = "/admin/history_day?device=" + d.device + "&day=" + day;
+  const current = await (await f.call(path, null, owner)).json();
+  assert.deepEqual(current.hourly, [
+    { hour: 12, app_package: "com.ktcp.video", seconds: 10 },
+  ]);
+  assert.equal((await f.call(path, null, other)).status, 404);
+  f.advance(4 * 86400000);
+  await cleanup(f.env, f.now());
+  assert.equal(
+    f.db.db.prepare("SELECT COUNT(*) n FROM usage_samples").get().n,
+    0,
+  );
+  assert.equal((await f.call(path, null, owner)).status, 403);
+  await f.premium(owner);
+  assert.equal(
+    (await (await f.call(path, null, owner)).json()).hourly[0].seconds,
+    10,
+  );
+  assert.equal(
+    (await f.call(path.replace(day, "2031-01-01"), null, owner)).status,
+    403,
+  );
+  f.advance(180 * 86400000);
+  await cleanup(f.env, f.now());
+  assert.equal(
+    f.db.db.prepare("SELECT COUNT(*) n FROM hourly_usage").get().n,
+    0,
+  );
 });

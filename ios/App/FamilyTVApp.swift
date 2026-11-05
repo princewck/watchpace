@@ -46,10 +46,11 @@ struct RootView: View {
     .task(
       id: SubscriptionSyncID(
         account: store.demo ? nil : store.auth?.token,
+        household: store.billingHouseholdID,
         enabled: store.capabilities?.paid_history == true,
         receipts: subscription.signedTransactions, originalIDs: store.premium.original_ids ?? [])
     ) {
-      guard !store.demo, let id = store.auth?.identity.tenant_id, let token = UUID(uuidString: id)
+      guard !store.demo, let id = store.billingHouseholdID, let token = UUID(uuidString: id)
       else { return }
       let acknowledged = await store.syncSubscriptions(
         subscription.receipts(for: token, ownedOriginalIDs: Set(store.premium.original_ids ?? [])))
@@ -157,6 +158,7 @@ struct DemoBanner: View {
 
 private struct SubscriptionSyncID: Hashable {
   var account: String?
+  var household: String?
   var enabled: Bool
   var receipts: [String]
   var originalIDs: [String]

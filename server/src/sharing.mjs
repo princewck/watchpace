@@ -32,7 +32,11 @@ export async function sharingRoutes({
       .first();
     if (!invite || invite.expires_ms <= now)
       throw new HTTPError(410, "Sharing code expired");
-    if (invite.owner === s.household_id)
+    const existingMember = await db
+      .prepare("SELECT 1 FROM tv_access WHERE device_id=? AND household_id=?")
+      .bind(invite.device_id, s.household_id)
+      .first();
+    if (invite.owner === s.household_id || existingMember)
       return json({
         request_id: invite.id,
         status: "approved",
@@ -129,20 +133,27 @@ export async function sharingRoutes({
       statements.push(
         db
           .prepare(
-            "INSERT INTO tv_access SELECT device_id,requester_id,? FROM tv_invitations WHERE id=? AND device_id=? AND status='pending' AND expires_ms>? ON CONFLICT(device_id,household_id) DO NOTHING",
+            "INSERT INTO tv_access SELECT device_id,requester_id,? FROM tv_invitations WHERE id=? AND device_id=? AND status='pending' AND expires_ms>? AND ((SELECT COUNT(*) FROM tv_access WHERE device_id=tv_invitations.device_id)<2 OR EXISTS(SELECT 1 FROM tv_access WHERE device_id=tv_invitations.device_id AND household_id=tv_invitations.requester_id)) ON CONFLICT(device_id,household_id) DO NOTHING",
           )
           .bind(now, row.id, device.id, now),
       );
+    const membershipGuard = approve
+      ? " AND EXISTS(SELECT 1 FROM tv_access WHERE device_id=tv_invitations.device_id AND household_id=tv_invitations.requester_id)"
+      : "";
     statements.push(
       db
         .prepare(
-          "UPDATE tv_invitations SET status=? WHERE id=? AND device_id=? AND status='pending' AND expires_ms>?",
+          "UPDATE tv_invitations SET status=? WHERE id=? AND device_id=? AND status='pending' AND expires_ms>?" +
+            membershipGuard,
         )
         .bind(approve ? "approved" : "rejected", row.id, device.id, now),
     );
     const result = await db.batch(statements);
     if (!result.at(-1).meta.changes)
-      throw new HTTPError(409, "Request already handled");
+      throw new HTTPError(
+        409,
+        "Request expired, already handled, or TV already has 3 parent accounts",
+      );
     return json({ success: true });
   }
   if (path === "/admin/share/revoke" && post) {

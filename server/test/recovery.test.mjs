@@ -246,7 +246,7 @@ test("self-hosted runtime includes history without Apple credentials or subscrip
   );
   assert.equal(
     (await (await f.call("/admin/subscription", null, a)).json()).active,
-    true,
+    false,
   );
   await cleanup(f.env, f.now());
   const stats = await (

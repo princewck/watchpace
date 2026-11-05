@@ -1,3 +1,5 @@
+import { historyStats } from "./history.mjs";
+import { billingHousehold, operatorHistoryFor } from "./family-billing.mjs";
 import { configRoute } from "./config-routes.mjs";
 import { sharingRoutes } from "./sharing.mjs";
 import { devicePolicy, requireOwner } from "./device-access.mjs";
@@ -18,7 +20,7 @@ import {
   cookie,
   json,
 } from "./security.mjs";
-import { DEFAULT_POLICY, dayOf, stateFor } from "./policy.mjs";
+import { DEFAULT_POLICY, stateFor } from "./policy.mjs";
 import {
   subscriptionStatus,
   saveTransaction,
@@ -232,7 +234,8 @@ export function createHandler({
           .run();
         return json({ success: true }, 200, { "Set-Cookie": cookie("", 0) });
       }
-      if (path === "/admin/mobile_capabilities" && !post)
+      if (path === "/admin/mobile_capabilities" && !post) {
+        const household = await billingHousehold(db, s, url);
         return json({
           version: 2,
           pause: true,
@@ -242,8 +245,16 @@ export function createHandler({
           staged_rules: false,
           registration: true,
           paid_history: env.OFFICIAL_CLOUD !== "false",
+          history_access: await operatorHistoryFor(
+            db,
+            s.household_id,
+            household,
+            now,
+          ),
+          history_retention_days: 180,
           lan: true,
         });
+      }
       const shared = await sharingRoutes({
         db,
         s,
@@ -269,15 +280,15 @@ export function createHandler({
       });
       if (installed) return installed;
       if (path === "/admin/subscription") {
+        const household = await billingHousehold(db, s, url);
         if (env.OFFICIAL_CLOUD === "false")
           return json({
-            active: true,
-            expires_ms: 253402300799000,
+            active: false,
+            expires_ms: null,
             original_ids: [],
             self_hosted: true,
           });
-        if (!post)
-          return json(await subscriptionStatus(db, s.household_id, now));
+        if (!post) return json(await subscriptionStatus(db, household, now));
         const transaction = await verifyTransaction(
           body.signed_transaction,
           env,
@@ -286,7 +297,7 @@ export function createHandler({
           ? await verifyAppTransaction(body.signed_app_transaction, env)
           : undefined;
         return json(
-          await saveTransaction(db, transaction, s.household_id, env, now, {
+          await saveTransaction(db, transaction, household, env, now, {
             appTransaction,
           }),
         );
@@ -375,27 +386,21 @@ export function createHandler({
           lan_sync_results: results,
         });
       }
-      if (path === "/admin/stats" && !post) {
-        const premium =
-            env.OFFICIAL_CLOUD === "false"
-              ? { active: true }
-              : await subscriptionStatus(db, s.household_id, now),
-          today = dayOf(now),
-          start = premium.active ? dayOf(now - 29 * 86400000) : today;
-        const daily = await db
-          .prepare(
-            "SELECT day,app_package,seconds FROM daily_usage WHERE device_id=? AND day>=? ORDER BY day,app_package",
-          )
-          .bind(d.id, start)
-          .all();
-        return json({
-          today,
-          daily: daily.results,
-          state: await stateFor(db, d, policy, now),
-          server_now_ms: now,
-          premium: premium.active,
-        });
-      }
+      if (["/admin/stats", "/admin/history_day"].includes(path) && !post)
+        return json(
+          await historyStats({
+            db,
+            session: s,
+            device: d,
+            policy,
+            env,
+            now,
+            day:
+              path === "/admin/history_day"
+                ? (url.searchParams.get("day") ?? "")
+                : undefined,
+          }),
+        );
       if (path === "/admin/control") {
         if (!post) return json(await stateFor(db, d, policy, now));
         if (typeof body.paused !== "boolean")

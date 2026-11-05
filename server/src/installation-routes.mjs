@@ -15,7 +15,7 @@ export async function installationRoutes({
   if (path === "/admin/devices" && !post) {
     const value = await db
       .prepare(
-        "SELECT d.* FROM devices d WHERE " +
+        "SELECT d.*,h.username household_name FROM devices d JOIN households h ON h.id=d.household_id WHERE " +
           accessWhere +
           " ORDER BY d.created_ms,d.id",
       )
@@ -24,6 +24,8 @@ export async function installationRoutes({
     return json({
       devices: value.results.map((d) => ({
         device_name: d.id,
+        household_id: d.household_id,
+        household_name: d.household_name,
         is_owner: d.household_id === s.household_id,
         label: d.label,
         enabled: d.enabled,

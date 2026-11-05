@@ -12,7 +12,7 @@
 - `SQLITE_PATH`：运行账号可写的数据库文件，例如 `/opt/watchpace/runtime/familytv.sqlite`。
 - `STATIC_ROOT`：本机 `server/public` 的绝对路径。
 - `PORT`：默认 3001，只监听 `127.0.0.1`。
-- `OFFICIAL_CLOUD=false`：自部署包含 30 天记录，无需 Apple 或支付配置。
+- `OFFICIAL_CLOUD=false`：自部署包含 180 天记录，无需 Apple 或支付配置。
 
 先创建运行目录并将其交给最终运行服务的账号写入，再用该账号初始化。初始化只创建数据库结构，不生成默认账户；首次家庭由手机注册创建。
 

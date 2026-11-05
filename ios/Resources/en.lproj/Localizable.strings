@@ -388,7 +388,7 @@
 "订阅使用条款" = "Subscription terms";
 "订阅关联其他家庭时，请登录原家庭。原家庭已永久删除的，可在这里恢复购买。" = "If your subscription belongs to another family, sign in to that family. If it has been permanently deleted, you can restore your purchase here for the current family.";
 "订阅包含" = "What's included";
-"订阅家庭云 Plus，保存云端观看历史并查看趋势分析。" = "Subscribe to Family Cloud Plus for the last 30 days of viewing history and trends.";
+"订阅家庭云 Plus，保存云端观看历史并查看趋势分析。" = "Subscribe to Family Cloud Plus to view up to 180 days of viewing history and trends.";
 "订阅有效" = "Subscription active";
 "订阅状态正在更新，请稍后恢复购买。" = "Your subscription status is updating. Restore purchases shortly.";
 "让电视休息一下" = "Pause viewing on this TV";
@@ -608,3 +608,51 @@
 "第一次使用，跟着引导完成安装。" = "First time? Follow the guide to set up your TV.";
 "继续安装这台电视" = "Continue setting up this TV";
 "这不是观有度的电视分享码，请让另一位家长重新分享。" = "This isn't a Family TV sharing code. Ask the other parent to share the TV again.";
+
+// History retention and independent access sources.
+"观看汇总默认保留最近180天，与是否订阅无关；免费账号只可查看当天，订阅或维护者授权可查看历史。超出180天的数据会在每日清理时移除。可在“我的”中删除家庭与云端数据；退出登录只清除本机登录凭证。独立测试服务的数据请联系运营者处理。" = "Viewing summaries are kept for the last 180 days by default, whether or not you subscribe. Without a subscription or access granted by the service operator, you can view today only. Either can unlock history. Data older than 180 days is removed during daily cleanup. Delete your family account and cloud data in My family. Signing out clears only the account data saved on this phone. For self-hosted services, contact the operator about data handling.";
+"订阅与历史权限" = "Subscription and history access";
+"Apple 订阅" = "Apple subscription";
+"未订阅" = "Not subscribed";
+"历史查看" = "History access";
+"维护者已授权" = "Access granted by service operator";
+"订阅已授权" = "Access through subscription";
+"仅当天" = "Today only";
+"维护者权限允许查看历史，不代表已购买 Apple 订阅。你仍可正常测试购买与恢复。" = "Access granted by the service operator lets you view history. It doesn't mean you have an Apple subscription. You can still purchase or restore one.";
+"查看订阅" = "View subscription";
+"查看最近 180 天观看趋势" = "See viewing trends for the last 180 days";
+"月度自动续订。付款由 Apple 收取，续订价格以购买确认页为准；可随时在 Apple 订阅设置中取消，取消后可用至当前周期结束。观看汇总默认保留180天；订阅开放历史查看，到期后仅可查看当天，维护者授权独立生效。设备连接和基础控制可免费使用。" = "Renews monthly. Apple handles payment; the renewal price appears on the purchase confirmation screen. Cancel at any time in your Apple subscription settings and keep access until the current period ends. Viewing summaries are kept for 180 days by default, and a subscription unlocks history. After it expires, you can view today only unless the service operator has separately granted history access. TV connections and basic controls are free.";
+"180 天" = "180 days";
+"近 {p0} 天合计" = "Last {p0} days total";
+
+// Viewing insights, subscription pricing and purchase sync.
+"有观看记录" = "Viewing recorded";
+"{p0} 天" = "Days: {p0}";
+"与上一时段持平" = "Unchanged from the previous period";
+"比上一时段减少 {p0}%" = "Down {p0}% from the previous period";
+"比上一时段增加 {p0}%" = "Up {p0}% from the previous period";
+"记录会逐日积累，帮助你看清观看习惯的变化。" = "Records build up over time, helping you see how viewing habits change.";
+"当天观看" = "Viewing that day";
+"应用明细" = "App breakdown";
+"当天没有采集到观看记录。" = "No viewing was recorded that day.";
+"这里展示已采集的应用观看时长，不包含视频标题或节目内容。" = "This shows recorded viewing time by app, without video titles or program content.";
+"订阅家庭" = "Family for this subscription";
+"订阅由家庭成员购买，请由购买者在自己的 Apple 账号中管理。" = "A family member purchased this subscription. Ask them to manage it using their own Apple Account.";
+"购买已完成，观看记录尚未解锁" = "Purchase complete. Viewing history isn't unlocked yet.";
+"请同步购买状态，无需再次付费。" = "Sync your purchase status. You don't need to pay again.";
+"同步购买并查看记录" = "Sync purchase and view history";
+"优惠约 {p0}%" = "Save about {p0}%";
+"前 {p0} 个月，每月 {p1}" = "First {p0} mo: {p1}/month";
+"之后每月 {p0}，自动续订。" = "Then {p0}/month. Renews automatically.";
+"订阅同步尚未完成，请稍后重试。" = "Subscription sync isn't complete yet. Try again shortly.";
+"此设备暂不允许 App 内购买。请检查屏幕使用时间中的购买限制；开发测试包还需登录有权限的沙盒测试账号。" = "In-app purchases aren't allowed on this device right now. Check purchase restrictions in Screen Time. For a development build, also sign in with an authorized Sandbox tester account.";
+"Apple 未允许这次购买。测试包请核对沙盒账号；正式版请检查账号和设备的购买权限。" = "Apple didn't allow this purchase. In a test build, check your Sandbox account. In the released app, check purchase permissions for your account and device.";
+
+// Daily viewing by time of day.
+"什么时候看的" = "Viewing by time of day";
+"重试" = "Try again";
+"这一天还没有时段明细，已有观看总时长仍保留。" = "Time-of-day details aren't available for this day yet. The recorded viewing total is still kept.";
+"小时" = "Hour";
+"应用" = "App";
+"时段按北京时间汇总，采样可能有约10秒误差。" = "Hourly totals use Beijing time. Recorded times may be off by about 10 seconds.";
+"暂时无法读取时段明细，请重试。" = "Can't load time-of-day details right now. Try again.";

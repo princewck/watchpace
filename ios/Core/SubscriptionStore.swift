@@ -5,6 +5,7 @@ import StoreKit
 @MainActor @Observable final class SubscriptionStore {
   static let productID = "wang.chengkai.familytv.plus.monthly"
   var product: Product?
+  var introductoryEligible = false
   var entitled = false
   var expiration: Date?
   var accountTokens = Set<UUID>()
@@ -25,9 +26,18 @@ import StoreKit
   var loading = false
   var purchasing = false
   var message: String?
+  @ObservationIgnored nonisolated(unsafe) private var storefrontUpdates: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var updates: Task<Void, Never>?
   @ObservationIgnored nonisolated(unsafe) private var purchaseIntents: Task<Void, Never>?
   init() {
+    storefrontUpdates = Task { [weak self] in
+      for await _ in Storefront.updates {
+        guard !Task.isCancelled else { return }
+        guard self?.product != nil else { continue }
+        self?.product = nil
+        await self?.load()
+      }
+    }
     updates = Task { [weak self] in
       for await result in Transaction.updates {
         guard !Task.isCancelled else { return }
@@ -48,6 +58,7 @@ import StoreKit
     }
   }
   deinit {
+    storefrontUpdates?.cancel()
     updates?.cancel()
     purchaseIntents?.cancel()
   }
@@ -97,9 +108,18 @@ import StoreKit
     transactionHouseholds = households
     transactionOriginalIDs = originalIDs
     signedTransactions = receipts
+    if let info = product?.subscription {
+      introductoryEligible = await info.isEligibleForIntroOffer
+    } else {
+      introductoryEligible = false
+    }
   }
   func purchase(accountToken: UUID) async {
     guard let product, !purchasing else { return }
+    guard AppStore.canMakePayments else {
+      message = L10n.tr("此设备暂不允许 App 内购买。请检查屏幕使用时间中的购买限制；开发测试包还需登录有权限的沙盒测试账号。")
+      return
+    }
     purchasing = true
     message = nil
     defer { purchasing = false }
@@ -118,6 +138,8 @@ import StoreKit
       case .userCancelled: break
       @unknown default: message = L10n.tr("暂时无法完成购买，请稍后重试。")
       }
+    } catch Product.PurchaseError.purchaseNotAllowed {
+      message = L10n.tr("Apple 未允许这次购买。测试包请核对沙盒账号；正式版请检查账号和设备的购买权限。")
     } catch { message = L10n.tr("购买未完成，请稍后重试。") }
   }
   func finishSyncedTransactions(transactionIDs: Set<String>) async {

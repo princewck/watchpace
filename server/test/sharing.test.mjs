@@ -128,3 +128,37 @@ test("expired and rejected QR codes grant no access", async (t) => {
     0,
   );
 });
+
+test("a TV has at most three parent accounts including its owner, under concurrent approvals", async (t) => {
+  const f = fixture(t),
+    owner = await f.register("limited_owner");
+  const guests = [];
+  for (let i = 0; i < 3; i++) {
+    f.advance(3600001);
+    guests.push(await f.register("limited_guest_" + i));
+  }
+  const d = await f.install(owner),
+    q = "?device=" + d.device,
+    requests = [];
+  for (const guest of guests) {
+    const invite = await (
+      await f.call("/admin/share/create" + q, {}, owner)
+    ).json();
+    const request = await (
+      await f.call("/admin/share/request", { code: invite.code }, guest)
+    ).json();
+    requests.push(request.request_id);
+  }
+  const approved = await Promise.all(
+    requests.map((request_id) =>
+      f.call("/admin/share/approve" + q, { request_id }, owner),
+    ),
+  );
+  assert.deepEqual(approved.map((r) => r.status).sort(), [200, 200, 409]);
+  assert.equal(
+    f.db.db
+      .prepare("SELECT COUNT(*) n FROM tv_access WHERE device_id=?")
+      .get(d.device).n,
+    2,
+  );
+});

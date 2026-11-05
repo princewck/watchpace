@@ -28,9 +28,13 @@ enum DataLoadState: Equatable {
   var subscriptionSyncError: String?
   var pendingRecoveryCode: String?
   var premiumActive: Bool {
-    capabilities?.paid_history == false
-      || premium.active && (premium.expires_ms ?? 0) > Date.now.timeIntervalSince1970 * 1000
+    premium.active && (premium.expires_ms ?? 0) > Date.now.timeIntervalSince1970 * 1000
   }
+  var historyAccess: Bool {
+    capabilities?.paid_history == false || capabilities?.history_access == true || premiumActive
+  }
+  var billingHouseholdID: String? { selected?.household_id ?? auth?.identity.tenant_id }
+  var billingFamilyName: String { selected?.household_name ?? auth?.identity.username ?? "" }
   var setupTicket: InstallationTicket?
   var lastRefresh: Date?
   // Module-internal so installation operations can live in a focused extension.
@@ -155,7 +159,7 @@ enum DataLoadState: Equatable {
       policy = config.policy
       policyLoaded = true
       let supported: MobileCapabilities? = try? await api.request(
-        "/admin/mobile_capabilities", auth: auth)
+        "/admin/mobile_capabilities", auth: auth, device: selectedID)
       guard version == refreshVersion else { return }
       capabilities = supported
       if supported?.lan == true, let id = selectedID {
@@ -165,7 +169,7 @@ enum DataLoadState: Equatable {
       }
       if supported?.paid_history == true {
         let status: CloudSubscription =
-          (try? await api.request("/admin/subscription", auth: auth))
+          (try? await api.request("/admin/subscription", auth: auth, device: selectedID))
           ?? CloudSubscription(active: false)
         guard version == refreshVersion else { return }
         premium = status
@@ -207,6 +211,7 @@ enum DataLoadState: Equatable {
   func select(_ id: String) async {
     guard !busy else { return }
     selectedID = id
+    premium = CloudSubscription(active: false)
     usage = nil
     policyLoaded = false
     notice = nil
@@ -334,35 +339,6 @@ enum DataLoadState: Equatable {
     busy = true
     defer { busy = false }
     await lan.disconnect(auth: auth, device: id, api: api)
-  }
-  @discardableResult func syncSubscriptions(
-    _ receipts: [String], signedAppTransaction: String? = nil
-  ) async -> Set<String> {
-    guard !demo, let auth, capabilities?.paid_history == true else { return [] }
-    let previouslyActive = premiumActive
-    var acknowledged = Set<String>()
-    var failed = false
-    for receipt in receipts {
-      do {
-        var body = ["signed_transaction": receipt]
-        if let signedAppTransaction { body["signed_app_transaction"] = signedAppTransaction }
-        let value: CloudSubscription = try await api.request(
-          "/admin/subscription", auth: auth, body: body)
-        guard self.auth?.token == auth.token, !demo else { return [] }
-        if let id = value.transaction_id { acknowledged.insert(id) }
-        premium = value
-      } catch { failed = true }
-    }
-    do {
-      let status: CloudSubscription = try await api.request("/admin/subscription", auth: auth)
-      guard self.auth?.token == auth.token, !demo else { return [] }
-      premium = status
-    } catch { failed = true }
-    if self.auth?.token == auth.token {
-      subscriptionSyncError = failed ? L10n.tr("Apple 凭证尚未同步到家庭云，请稍后重试。") : nil
-    }
-    if !previouslyActive, premiumActive, self.auth?.token == auth.token { await refresh() }
-    return acknowledged
   }
   func register(origin: String, username: String, password: String) async {
     guard !busy else { return }

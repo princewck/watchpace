@@ -90,3 +90,30 @@ extension ModelTests {
     }
 
 }
+
+extension ModelTests {
+  func testViewingInsightsComparisonAndDayDetailUseOnlyTheirPeriod() {
+    let usage = UsageResponse(today: "2026-11-05", daily: [
+      DailyUsage(day: "2026-11-05", app_package: "a", seconds: 90),
+      DailyUsage(day: "2026-11-05", app_package: "b", seconds: 30),
+      DailyUsage(day: "2026-10-29", app_package: "a", seconds: 240),
+      DailyUsage(day: "2026-10-01", app_package: "a", seconds: 999)
+    ], state: PlaybackState(status: "allow", stage: 0, remaining_seconds: 0), server_now_ms: 0)
+    let insights = ViewingInsights(usage: usage, count: 7)
+    XCTAssertEqual(insights.total, 120)
+    XCTAssertEqual(insights.previousTotal, 240)
+    XCTAssertEqual(insights.changePercent, -50)
+    XCTAssertEqual(insights.recordedDays, 1)
+    XCTAssertEqual(insights.apps(on: "2026-11-05").map(\.seconds), [90, 30])
+    XCTAssertTrue(insights.apps(on: "2026-11-04").isEmpty)
+    XCTAssertNil(ViewingInsights(usage: usage, count: 1).changePercent)
+  }
+  @MainActor func testOperatorHistoryDoesNotPretendAnAppleSubscriptionExists() {
+    let store = FamilyStore(restoreSession: false)
+    store.capabilities = MobileCapabilities(version: 2, pause: true, daily_limit: true,
+      execution_receipts: true, history_access: true, paid_history: true)
+    store.premium = CloudSubscription(active: false)
+    XCTAssertTrue(store.historyAccess)
+    XCTAssertFalse(store.premiumActive)
+  }
+}

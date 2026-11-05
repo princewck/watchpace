@@ -7,7 +7,7 @@ struct SubscriptionView: View {
   @State private var showManagement = false
   @State private var restoring = false
   private var accountToken: UUID? {
-    family.auth.flatMap { UUID(uuidString: $0.identity.tenant_id) }
+    family.billingHouseholdID.flatMap { UUID(uuidString: $0) }
   }
   var body: some View {
     List {
@@ -16,8 +16,9 @@ struct SubscriptionView: View {
         Text(L10n.tr("家庭云 Plus")).font(.largeTitle.bold())
         Text(L10n.tr("把每一天，连成看得懂的变化。")).font(.title3).foregroundStyle(Color("SupportingText"))
       }
+      Section { LabeledContent(L10n.tr("订阅家庭"), value: family.billingFamilyName) }
       Section(L10n.tr("订阅包含")) {
-        Label(L10n.tr("云端保存最近 30 天观看历史"), systemImage: "icloud")
+        Label(L10n.tr("查看最近 180 天观看趋势"), systemImage: "icloud")
         Label(L10n.tr("跨设备同步观看记录"), systemImage: "arrow.triangle.2.circlepath")
         Label(L10n.tr("每周趋势与应用分析"), systemImage: "chart.bar.xaxis")
       }
@@ -30,10 +31,15 @@ struct SubscriptionView: View {
               L10n.tr("当前周期至"),
               value: date.formatted(.dateTime.locale(L10n.locale).year().month().day()))
           }
-          Button(L10n.tr("管理订阅")) { showManagement = true }
+          if subscription.hasAccess(for: family.billingHouseholdID) {
+            Button(L10n.tr("管理订阅")) { showManagement = true }
+          } else {
+            Text(L10n.tr("订阅由家庭成员购买，请由购买者在自己的 Apple 账号中管理。"))
+              .font(.footnote).foregroundStyle(Color("SupportingText"))
+          }
         } else {
           if let product = subscription.product {
-            Text(L10n.tr("\(product.displayPrice) / 月")).font(.title2.bold())
+            SubscriptionPriceView(product: product, eligible: subscription.introductoryEligible)
             Button(L10n.tr("按月订阅")) {
               if let accountToken {
                 Task { await subscription.purchase(accountToken: accountToken) }
@@ -74,7 +80,7 @@ struct SubscriptionView: View {
           subscription.purchasing || restoring || family.demo || accountToken == nil
             || family.capabilities?.paid_history != true)
         if subscription.purchasing || restoring { ProgressView(L10n.tr("正在处理订阅…")) }
-        if subscription.hasAccess(for: family.auth?.identity.tenant_id) && !family.premiumActive
+        if subscription.hasAccess(for: family.billingHouseholdID) && !family.premiumActive
           && !family.demo
         {
           Text(family.subscriptionSyncError ?? L10n.tr("Apple 订阅已验证，正在同步家庭云。")).font(.subheadline)
@@ -90,7 +96,7 @@ struct SubscriptionView: View {
           }
         }
         if subscription.entitled && !family.premiumActive
-          && !subscription.hasAccess(for: family.auth?.identity.tenant_id) && !family.demo
+          && !subscription.hasAccess(for: family.billingHouseholdID) && !family.demo
         {
           Text(L10n.tr("订阅关联其他家庭时，请登录原家庭。原家庭已永久删除的，可在这里恢复购买。")).font(.subheadline)
         }
@@ -100,7 +106,7 @@ struct SubscriptionView: View {
       } footer: {
         Text(
           L10n.tr(
-            "月度自动续订。付款由 Apple 收取，续订价格以购买确认页为准；可随时在 Apple 订阅设置中取消，取消后可用至当前周期结束。订阅有效时保留最近 30 天云端历史；到期后停止保留往日记录。设备连接和基础控制可免费使用。"
+            "月度自动续订。付款由 Apple 收取，续订价格以购买确认页为准；可随时在 Apple 订阅设置中取消，取消后可用至当前周期结束。观看汇总默认保留180天；订阅开放历史查看，到期后仅可查看当天，维护者授权独立生效。设备连接和基础控制可免费使用。"
           )
         ).foregroundStyle(Color("SupportingText"))
       }
