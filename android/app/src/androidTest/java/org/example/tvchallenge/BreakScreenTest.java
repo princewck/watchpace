@@ -191,4 +191,73 @@ public class BreakScreenTest {
       );
     }
   }
+
+  @Test
+  public void captureLocalizedReadmeScreenshots() throws Exception {
+    open();
+    String[] languages = { "en", "zh-CN", "ja", "ko" };
+    for (String language : languages) {
+      android.content.res.Configuration config =
+        new android.content.res.Configuration(
+          context.getResources().getConfiguration()
+        );
+      config.setLocale(Locale.forLanguageTag(language));
+      Context localized = activity.createConfigurationContext(config);
+      final BreakScreenView[] view = new BreakScreenView[1];
+      instrumentation.runOnMainSync(() -> {
+        android.view.WindowManager.LayoutParams windowParams = activity
+          .getWindow()
+          .getAttributes();
+        windowParams.layoutInDisplayCutoutMode =
+          android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+        activity.getWindow().setAttributes(windowParams);
+        activity.getWindow().setDecorFitsSystemWindows(false);
+        activity
+          .getWindow()
+          .getInsetsController()
+          .hide(android.view.WindowInsets.Type.systemBars());
+        activity
+          .getWindow()
+          .getDecorView()
+          .setSystemUiVisibility(
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+              View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+              View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+              View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+              View.SYSTEM_UI_FLAG_FULLSCREEN |
+              View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+          );
+        view[0] = new BreakScreenView(localized, 1);
+        view[0].show(R.string.break_rest_title, R.string.break_rest_body);
+        activity.setContentView(view[0]);
+        view[0].setActive(true);
+        android.widget.TextView label = new android.widget.TextView(localized);
+        label.setText("DEMO");
+        label.setTextSize(14);
+        label.setTextColor(0xff465371);
+        android.widget.FrameLayout.LayoutParams params =
+          new android.widget.FrameLayout.LayoutParams(
+            -2,
+            -2,
+            android.view.Gravity.BOTTOM | android.view.Gravity.RIGHT
+          );
+        params.setMargins(0, 0, 28, 16);
+        view[0].addView(label, params);
+      });
+      Thread.sleep(1400);
+      Bitmap screenshot = instrumentation.getUiAutomation().takeScreenshot();
+      assertNotNull(screenshot);
+      try (
+        FileOutputStream output = new FileOutputStream(
+          new File(
+            context.getExternalFilesDir(null),
+            "readme-" + language + "-tv-break.png"
+          )
+        )
+      ) {
+        screenshot.compress(Bitmap.CompressFormat.PNG, 100, output);
+      }
+      instrumentation.runOnMainSync(() -> view[0].setActive(false));
+    }
+  }
 }
