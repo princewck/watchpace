@@ -307,6 +307,7 @@ public class MonitorService extends Service {
           .putBoolean("enabled", false)
           .putString("last_status", "unpaired")
           .commit();
+        RestPhoto.clear(this);
         Recovery.cancel(this);
         releaseFocus();
         stopSelf();

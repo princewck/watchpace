@@ -180,7 +180,8 @@ final class LanControl {
     String kind = body.getString("kind");
     if (
       kind.equals("status") ||
-      kind.matches("update_(begin|chunk|finish|status)")
+      kind.matches("update_(begin|chunk|finish|status)") ||
+      kind.matches("photo_(begin|chunk|finish)")
     ) return body;
     if (kind.equals("pause")) {
       if (!(body.get("paused") instanceof Boolean)) throw new SecurityException(
@@ -205,6 +206,10 @@ final class LanControl {
       SharedPreferences p = NativeState.prefs(c);
       JSONObject body = verify(c, e);
       String kind = body.getString("kind");
+      if (kind.startsWith("photo_")) return result(c, false).put(
+        "update",
+        RestPhoto.handle(c, e, body)
+      );
       if (kind.startsWith("update_")) {
         JSONObject receipt = result(c, false);
         receipt.put("update", SelfUpdate.handle(c, e, body));

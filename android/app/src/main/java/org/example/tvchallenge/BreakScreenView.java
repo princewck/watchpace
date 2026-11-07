@@ -1,6 +1,8 @@
 package org.example.tvchallenge;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Layout;
@@ -8,8 +10,10 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import java.io.File;
 
 /** Native typography over a light, animated shader background; no bitmap text or blur. */
 final class BreakScreenView extends FrameLayout {
@@ -17,6 +21,9 @@ final class BreakScreenView extends FrameLayout {
   private static final int WHITE = 0xff18223d;
   private static final int SAGE = 0xff465371;
   private final RestBackground background;
+  private final ImageView photo;
+  private long photoModified = -1;
+  private boolean active;
   private final LinearLayout content;
   private final TextView title;
   private final TextView reason;
@@ -51,6 +58,12 @@ final class BreakScreenView extends FrameLayout {
         ? new RestBackground(context)
         : new RestBackground(context, theme);
     if (background != null) addView(background, new LayoutParams(-1, -1));
+
+    photo = new ImageView(context);
+    photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+    photo.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
+    photo.setVisibility(GONE);
+    addView(photo, new LayoutParams(-1, -1));
 
     View shade = new View(context);
     shade.setBackground(
@@ -145,8 +158,27 @@ final class BreakScreenView extends FrameLayout {
   }
 
   void setActive(boolean active) {
+    this.active = active;
     status.setActive(active);
-    if (background != null) background.setActive(active);
+    refreshPhoto();
+    if (background != null) background.setActive(
+      active && photo.getVisibility() != VISIBLE
+    );
+  }
+
+  void refreshPhoto() {
+    File file = RestPhoto.file(getContext());
+    long modified = file.lastModified();
+    if (modified == photoModified) return;
+    photoModified = modified;
+    Bitmap image =
+      modified == 0 ? null : BitmapFactory.decodeFile(file.getPath());
+    photo.setImageBitmap(image);
+    photo.setVisibility(image == null ? GONE : VISIBLE);
+    if (background != null) {
+      background.setVisibility(image == null ? VISIBLE : GONE);
+      background.setActive(active && image == null);
+    }
   }
 
   @Override

@@ -26,7 +26,7 @@ def main():
     req = urllib.request.Request(
         origin + "/device/status",
         headers={
-            "User-Agent": "FamilyTV-Setup/1.0.12",
+            "User-Agent": "FamilyTV-Setup/1.0.13",
             "Authorization": "Bearer " + config["token"],
             "Accept": "application/json",
         },

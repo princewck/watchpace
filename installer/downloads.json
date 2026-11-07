@@ -1,20 +1,20 @@
 {
-  "skill_version": "1.0.12",
+  "skill_version": "1.0.13",
   "protocol_version": 2,
   "minimum_android": 26,
   "apk": {
-    "version": "5.0.11",
-    "version_code": 17,
+    "version": "5.0.12",
+    "version_code": 18,
     "package": "org.example.tvchallenge",
-    "url": "https://familytv-api.princewck.workers.dev/downloads/tv/5.0.11/family-tv.apk",
-    "sha256": "2a3affadf3ecba4ff7a37ed89e8d576f3103a427f7616120475da0856e19a6bd",
-    "size": 75806,
+    "url": "https://familytv-api.princewck.workers.dev/downloads/tv/5.0.12/family-tv.apk",
+    "sha256": "7652d312c1d41f0d944ccdee890849e811b5aa0adea7b5eea36b84878cad21cd",
+    "size": 77722,
     "signing_certificate_sha256": "3a698a5f8ee49e430a7fdfc6757cae6957f98f7c959ecb517713c4a9ff8ca3d5"
   },
   "download_origin": "https://familytv-api.princewck.workers.dev",
   "skill": {
-    "url": "https://familytv-api.princewck.workers.dev/downloads/install/1.0.12/family-tv-setup.zip",
-    "sha256": "8ef74cb2b4be5bc12e83ed244708d5b9e37c8c5a914419c4d1f82077e1a34860",
-    "size": 26606
+    "url": "https://familytv-api.princewck.workers.dev/downloads/install/1.0.13/family-tv-setup.zip",
+    "sha256": "6aa56b171bb1ae6a03f2f471a19fd742861c8e4d0a3e034e350a1d1cc1a6bc51",
+    "size": 26607
   }
 }

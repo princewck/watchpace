@@ -81,6 +81,7 @@ final class NativeState {
       !device.equals(p.getString("device", "")) || !origin.equals(origin(c))
     ) {
       if (!p.edit().clear().commit()) throw new IOException("Reset failed");
+      RestPhoto.clear(c);
     }
     if (
       !p

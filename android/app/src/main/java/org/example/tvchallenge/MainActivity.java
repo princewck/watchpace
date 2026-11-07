@@ -56,6 +56,7 @@ public class MainActivity extends Activity {
 
   private void render() {
     if (isFinishing() || screen == null) return;
+    screen.refreshPhoto();
     boolean enabled = NativeState.enabled(this);
     if (wasEnabled && !enabled) {
       finish();

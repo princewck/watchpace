@@ -717,3 +717,14 @@
 "使用手机当前时区" = "Use the phone’s time zone";
 "切换时区会保留设置的钟点，并按新时区执行。" = "Changing the time zone keeps the scheduled clock times and applies them in the new zone.";
 "更新电视客户端后可使用手机时区。" = "Update the TV app to use the phone’s time zone.";
+
+"休息页背景" = "Break screen background";
+"请先更新电视客户端，再设置休息页背景。" = "Update the TV app before choosing a background.";
+"正在检查电视直连…" = "Checking the local TV connection…";
+"请将手机和电视连接到同一 Wi-Fi，并开启这台电视的局域网直连。" = "Connect your phone and TV to the same Wi-Fi and enable local connection for this TV.";
+"从照片选择" = "Choose from Photos";
+"请选择宽度超过 2048 像素、高度至少 1080 像素的横屏照片，推荐 16:9。" = "Choose a landscape photo wider than 2,048 pixels and at least 1,080 pixels tall. A 16:9 photo works best.";
+"无法读取这张照片。" = "This photo couldn't be opened.";
+"照片文件太大，请换一张照片。" = "This photo is too large. Choose another one.";
+"电视已保存休息页背景。" = "The TV saved your break screen background.";
+"照片未传送成功，请检查 Wi-Fi 后重试。" = "The photo didn't reach the TV. Check Wi-Fi and try again.";
