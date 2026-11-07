@@ -32,7 +32,9 @@ struct TVUpdateView: View {
           }
           Button(L10n.tr("下载并传送更新")) { Task { await transfer() } }
             .disabled(transferring || !store.lan.isPaired(with: deviceID))
-          if transferring { ProgressView(value: progress) }
+          if transferring {
+            if progress == 0 { ProgressView() } else { ProgressView(value: progress) }
+          }
           if let status { Text(status).font(.subheadline) }
           if let failure { Text(failure).foregroundStyle(Color("SupportingText")) }
           Button(L10n.tr("检查升级结果")) {
@@ -69,9 +71,15 @@ struct TVUpdateView: View {
       transferring = false
       store.busy = false
     }
+    var downloading = true
     do {
-      status = L10n.tr("正在下载安装包…")
-      let data = try await TVUpdatePackage.download(release: release)
+      let data = try await TVUpdatePackage.download(release: release) { attempt, fraction in
+        status = attempt == 1 ? L10n.tr("正在下载安装包…") : L10n.tr("正在重新下载安装包…")
+        progress = fraction
+      }
+      downloading = false
+      progress = 0
+      status = L10n.tr("正在传送到电视…")
       let id = UUID().uuidString
       let revision = store.usage?.state.control_revision ?? 1
       _ = try await store.lan.sendUpdate(
@@ -80,7 +88,6 @@ struct TVUpdateView: View {
           "size": data.count, "sha256": release.sha256,
           "version_code": release.version_code,
         ], device: deviceID, revision: revision)
-      status = L10n.tr("正在传送到电视…")
       for offset in stride(from: 0, to: data.count, by: 8192) {
         try Task.checkCancellation()
         let end = min(data.count, offset + 8192)
@@ -96,8 +103,15 @@ struct TVUpdateView: View {
       _ = try await store.lan.sendUpdate(
         ["kind": "update_finish", "upload_id": id], device: deviceID, revision: revision)
       status = L10n.tr("安装包已送达，请在电视上确认安装。完成后点“检查升级结果”。")
+    } catch is CancellationError {
+      status = nil
     } catch {
-      failure = L10n.tr("更新未完成，原客户端仍保留。请确认电视与手机连接同一 Wi-Fi，然后重试。")
+      let description =
+        downloading
+        ? ((error as? TVError)?.localizedDescription ?? L10n.tr("暂时无法下载电视更新，请稍后重试。"))
+        : L10n.tr("更新未完成，原客户端仍保留。请确认电视与手机连接同一 Wi-Fi，然后重试。")
+      failure = description
+      store.error = description
       status = nil
     }
   }

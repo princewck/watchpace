@@ -728,3 +728,7 @@
 "照片文件太大，请换一张照片。" = "This photo is too large. Choose another one.";
 "电视已保存休息页背景。" = "The TV saved your break screen background.";
 "照片未传送成功，请检查 Wi-Fi 后重试。" = "The photo didn't reach the TV. Check Wi-Fi and try again.";
+
+"正在重新下载安装包…" = "Retrying the download…";
+"下载安装包超时，已重试一次。请检查手机网络后再试。" = "The download timed out after one retry. Check your phone’s connection and try again.";
+"手机未能连接安装包下载站，已重试一次。请检查网络后再试。" = "Your phone couldn’t reach the download server after one retry. Check your connection and try again.";
