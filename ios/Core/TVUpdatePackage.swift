@@ -1,4 +1,5 @@
 import CryptoKit
+import DeviceCheck
 import Foundation
 
 struct TVUpdateReceipt: Decodable {
@@ -18,11 +19,20 @@ struct TVRelease: Decodable {
     version: ReleaseDownloads.apkVersion, version_code: ReleaseDownloads.apkVersionCode,
     package: "org.example.tvchallenge", url: ReleaseDownloads.apkURL,
     sha256: ReleaseDownloads.apkSHA256, size: ReleaseDownloads.apkSize)
-  func validate() throws {
-    guard let link = URL(string: url), link.scheme == "https",
-      link.host == URL(string: ReleaseDownloads.apkURL)?.host,
+  func validate(origin: URL? = nil) throws {
+    guard let link = URL(string: url) else {
+      throw TVError.message(L10n.tr("更新信息无效，请联系支持。"))
+    }
+    let trusted: Bool
+    if let origin {
+      trusted = link == origin.appendingPathComponent("admin/tv-update/download")
+    } else {
+      trusted =
+        link.host == URL(string: ReleaseDownloads.apkURL)?.host
+        && link.path == "/downloads/tv/\(version)/family-tv.apk"
+    }
+    guard trusted, link.scheme == "https",
       link.user == nil, link.password == nil, link.query == nil, link.fragment == nil,
-      link.path == "/downloads/tv/\(version)/family-tv.apk",
       version.range(of: "^[0-9]+\\.[0-9]+\\.[0-9]+$", options: .regularExpression) != nil,
       package == "org.example.tvchallenge", version_code >= ReleaseDownloads.apkVersionCode,
       (1...8_388_608).contains(size),
@@ -32,96 +42,69 @@ struct TVRelease: Decodable {
 }
 /// HTTPS release feed discovers later TV versions without rebuilding the phone app.
 enum TVUpdatePackage {
-  static func latest() async throws -> TVRelease {
-    let url = URL(string: ReleaseDownloads.manifestURL)!
-    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
-    request.timeoutInterval = 10
-    let (bytes, response) = try await URLSession.shared.bytes(for: request)
-    guard (response as? HTTPURLResponse)?.statusCode == 200, response.url == url else {
-      throw TVError.message(L10n.tr("更新信息无效，请联系支持。"))
-    }
-    var data = Data()
-    for try await byte in bytes {
-      try Task.checkCancellation()
-      guard data.count < 65536 else { throw TVError.message(L10n.tr("更新信息无效，请联系支持。")) }
-      data.append(byte)
-    }
-    struct Feed: Decodable { let apk: TVRelease }
-    let release = try JSONDecoder().decode(Feed.self, from: data).apk
-    try release.validate()
+  static func latest(api: TVAPI, auth: SavedSession, device: String) async throws -> TVRelease {
+    let release: TVRelease = try await api.request(
+      "/admin/tv-update/latest", auth: auth, device: device, timeout: 10)
+    try release.validate(origin: auth.origin)
     return release
   }
-  static func verify(_ data: Data, release: TVRelease = .bundled) throws {
-    try release.validate()
+
+  static func verify(_ data: Data, release: TVRelease = .bundled, origin: URL? = nil) throws {
+    try release.validate(origin: origin)
     let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     guard data.count == release.size, hash == release.sha256 else {
       throw TVError.message(L10n.tr("安装包校验未通过，未发送到电视。请稍后重试。"))
     }
   }
-  static func download(
-    release: TVRelease, progress: @MainActor (Int, Double) -> Void
-  ) async throws -> Data {
-    try release.validate()
-    let url = URL(string: release.url)!
-    for attempt in 1...2 {
-      await progress(attempt, 0)
-      do {
-        return try await downloadOnce(
-          url: url, release: release, attempt: attempt, progress: progress)
-      } catch let error as URLError where isTemporary(error) {
-        try Task.checkCancellation()
-        if attempt == 1 {
-          try await Task.sleep(for: .seconds(1))
-        } else if error.code == .timedOut {
-          throw TVError.message(L10n.tr("下载安装包超时，已重试一次。请检查手机网络后再试。"))
-        } else {
-          throw TVError.message(L10n.tr("手机未能连接安装包下载站，已重试一次。请检查网络后再试。"))
-        }
-      }
-    }
-    throw TVError.message(L10n.tr("暂时无法下载电视更新，请稍后重试。"))
+  private struct Challenge: Decodable {
+    let challenge: String
+    let version_code: Int
   }
 
-  private static func isTemporary(_ error: URLError) -> Bool {
-    [
-      .timedOut, .cannotFindHost, .dnsLookupFailed, .cannotConnectToHost,
-      .networkConnectionLost, .notConnectedToInternet, .resourceUnavailable,
-    ].contains(error.code)
-  }
-
-  private static func downloadOnce(
-    url: URL, release: TVRelease, attempt: Int, progress: @MainActor (Int, Double) -> Void
+  @MainActor static func download(
+    release: TVRelease, api: TVAPI, auth: SavedSession, device: String
   ) async throws -> Data {
-    let configuration = URLSessionConfiguration.ephemeral
-    configuration.timeoutIntervalForResource = attempt == 1 ? 30 : 60
-    let session = URLSession(configuration: configuration)
-    defer { session.invalidateAndCancel() }
-    var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
-    request.timeoutInterval = attempt == 1 ? 20 : 45
-    let (stream, response) = try await session.bytes(for: request)
-    guard let http = response as? HTTPURLResponse, response.url == url else {
-      throw TVError.message(L10n.tr("暂时无法下载电视更新，请稍后重试。"))
+    try release.validate(origin: auth.origin)
+    let service = DCAppAttestService.shared
+    guard service.isSupported else {
+      throw TVError.message(L10n.tr("这台手机暂不支持 App 验证，无法下载电视更新。"))
     }
-    if [408, 429, 500, 502, 503, 504].contains(http.statusCode) {
-      throw URLError(.resourceUnavailable)
+    let keyScope = Data((auth.origin.absoluteString + "|" + auth.identity.tenant_id).utf8)
+    let preference = "tv-update-attest." + SHA256.hash(data: keyScope).description
+    let challenge: Challenge = try await api.request(
+      "/admin/tv-update/challenge", auth: auth, device: device, body: [:], timeout: 15)
+    guard challenge.version_code == release.version_code else {
+      throw TVError.message(L10n.tr("电视更新版本已变化，请刷新后重试。"))
     }
-    guard http.statusCode == 200 else {
-      throw TVError.message(L10n.tr("暂时无法下载电视更新，请稍后重试。"))
-    }
-    var data = Data()
-    data.reserveCapacity(release.size)
-    for try await byte in stream {
-      try Task.checkCancellation()
-      data.append(byte)
-      guard data.count <= release.size else {
-        throw TVError.message(L10n.tr("安装包大小异常，已停止下载。"))
+    let challengeHash = Data(SHA256.hash(data: Data(challenge.challenge.utf8)))
+    let key: String
+    let proof: Data
+    let kind: String
+    let existing = UserDefaults.standard.string(forKey: preference)
+    do {
+      if let existing {
+        key = existing
+        proof = try await service.generateAssertion(key, clientDataHash: challengeHash)
+        kind = "assertion"
+      } else {
+        key = try await service.generateKey()
+        proof = try await service.attestKey(key, clientDataHash: challengeHash)
+        kind = "attestation"
       }
-      if data.count.isMultiple(of: 8192) {
-        await progress(attempt, Double(data.count) / Double(release.size))
+    } catch {
+      if (error as? DCError)?.code == .invalidKey {
+        UserDefaults.standard.removeObject(forKey: preference)
       }
+      throw TVError.message(L10n.tr("手机 App 验证未通过，暂时无法下载安装包。"))
     }
-    try verify(data, release: release)
-    await progress(attempt, 1)
+    let data = try await api.downloadTVUpdate(
+      auth: auth, device: device,
+      proof: [
+        "challenge": challenge.challenge, "key_id": key,
+        "kind": kind, "proof": proof.base64EncodedString(),
+      ])
+    if existing == nil { UserDefaults.standard.set(key, forKey: preference) }
+    try verify(data, release: release, origin: auth.origin)
     return data
   }
 }

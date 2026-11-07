@@ -3,7 +3,8 @@ import SwiftUI
 struct TVUpdateView: View {
   @Environment(FamilyStore.self) private var store
   let deviceID: String
-  @State private var release = TVRelease.bundled
+  @State private var release: TVRelease?
+  @State private var checking = true
   @State private var transferring = false
   @State private var progress = 0.0
   @State private var status: String?
@@ -13,7 +14,7 @@ struct TVUpdateView: View {
     List {
       Section {
         Label(device?.label ?? L10n.tr("电视"), systemImage: "tv")
-        LabeledContent(L10n.tr("最新发布版本"), value: release.version)
+        LabeledContent(L10n.tr("最新发布版本"), value: release?.version ?? "—")
       }
       if (device?.update_protocol_version ?? 0) < 1 {
         Section {
@@ -22,9 +23,9 @@ struct TVUpdateView: View {
             NavigationLink(L10n.tr("打开安装引导")) { InstallationView(existingDevice: device) }
           }
         }
-      } else if (device?.client_version_code ?? 0) >= release.version_code {
+      } else if let release, (device?.client_version_code ?? 0) >= release.version_code {
         Section { Label(L10n.tr("电视已是最新发布版本"), systemImage: "checkmark.circle") }
-      } else {
+      } else if release != nil {
         Section {
           Text(L10n.tr("手机先下载并校验安装包，再通过加密直连传给电视。最后请用遥控器确认安装；绑定和观看记录会保留。"))
           if !store.lan.isPaired(with: deviceID) {
@@ -40,9 +41,15 @@ struct TVUpdateView: View {
           Button(L10n.tr("检查升级结果")) {
             Task {
               await store.refresh()
-              if let latest = try? await TVUpdatePackage.latest() { release = latest }
+              await checkRelease()
             }
           }.disabled(transferring)
+        }
+      } else {
+        Section {
+          if checking { ProgressView() }
+          if let failure { Text(failure) }
+          Button(L10n.tr("重新检查")) { Task { await checkRelease() } }.disabled(checking)
         }
       }
       Section {
@@ -55,13 +62,31 @@ struct TVUpdateView: View {
     }.navigationTitle(L10n.tr("电视客户端更新")).navigationBarTitleDisplayMode(.inline)
       .task {
         if store.selectedID != deviceID { await store.select(deviceID) }
-        if let latest = try? await TVUpdatePackage.latest() { release = latest }
+        await checkRelease()
       }
       .interactiveDismissDisabled(transferring)
   }
+  private func checkRelease() async {
+    guard let auth = store.auth else {
+      checking = false
+      return
+    }
+    checking = true
+    defer { checking = false }
+    do {
+      release = try await TVUpdatePackage.latest(api: store.api, auth: auth, device: deviceID)
+      failure = nil
+    } catch is CancellationError {
+      return
+    } catch {
+      release = nil
+      failure = L10n.tr("暂时无法下载电视更新，请稍后重试。")
+    }
+  }
+
   private func transfer() async {
     guard !transferring, !store.busy, !store.demo,
-      store.selectedID == deviceID, store.auth != nil
+      store.selectedID == deviceID, let auth = store.auth, let release
     else { return }
     transferring = true
     store.busy = true
@@ -73,10 +98,9 @@ struct TVUpdateView: View {
     }
     var downloading = true
     do {
-      let data = try await TVUpdatePackage.download(release: release) { attempt, fraction in
-        status = attempt == 1 ? L10n.tr("正在下载安装包…") : L10n.tr("正在重新下载安装包…")
-        progress = fraction
-      }
+      status = L10n.tr("正在验证手机并下载安装包…")
+      let data = try await TVUpdatePackage.download(
+        release: release, api: store.api, auth: auth, device: deviceID)
       downloading = false
       progress = 0
       status = L10n.tr("正在传送到电视…")

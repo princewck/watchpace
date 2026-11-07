@@ -117,6 +117,16 @@ actor TVAPI {
       throw TVError.message(L10n.tr("服务返回的数据不兼容，请更新服务或稍后重试。"))
     }
   }
+  func downloadTVUpdate(auth: SavedSession, device: String, proof: [String: String]) async throws -> Data {
+    let (data, response) = try await send(
+      origin: auth.origin, path: "/admin/tv-update/download", auth: auth, device: device,
+      body: proof, timeout: 25)
+    guard response.mimeType == "application/vnd.android.package-archive" else {
+      throw TVError.message(L10n.tr("暂时无法下载电视更新，请稍后重试。"))
+    }
+    return data
+  }
+
   private func send(
     origin: URL, path: String, auth: SavedSession? = nil, device: String? = nil,
     body: [String: Any]? = nil, timeout: TimeInterval? = nil, query: [String: String] = [:]
@@ -148,6 +158,8 @@ actor TVAPI {
     switch response.statusCode {
     case 200..<300: return (data, response)
     case 401: throw TVError.message(L10n.tr("账号或密码不正确，或登录已过期，请重新登录。"))
+    case 403 where path == "/admin/tv-update/download":
+      throw TVError.message(L10n.tr("手机 App 验证未通过，暂时无法下载安装包。"))
     case 403: throw TVError.message(L10n.tr("没有操作权限，请重新登录后再试。"))
     case 409 where path == "/admin/installation_ticket":
       throw TVError.message(L10n.tr("安装码可能已被助手兑换，请继续查看连接健康检查；如需重新安装，请联系支持。"))

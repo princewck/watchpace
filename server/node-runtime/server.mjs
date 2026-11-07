@@ -8,6 +8,7 @@ import {
   verifyNotification,
   verifyAppTransaction,
 } from "../src/apple.mjs";
+import { cleanTVUpdates, loadTVUpdate, tvUpdateRoute } from "./tv-updates.mjs";
 import { SQLiteD1 } from "./database.mjs";
 const origin = process.env.PUBLIC_ORIGIN;
 if (
@@ -28,6 +29,9 @@ const env = {
   DB: db,
   PUBLIC_ORIGIN: origin,
 };
+const tvUpdate = process.env.TV_UPDATE_ROOT
+  ? await loadTVUpdate(resolve(process.env.TV_UPDATE_ROOT), origin)
+  : null;
 const handle = createHandler({
   verifyTransaction,
   verifyNotification,
@@ -103,7 +107,9 @@ const server = createServer(async (req, res) => {
         ? { body: Buffer.concat(chunks) }
         : {}),
     });
-    const response = await handle(request, env);
+    const response = await (url.pathname.startsWith("/admin/tv-update/")
+      ? tvUpdateRoute(request, env, tvUpdate)
+      : handle(request, env));
     res.writeHead(response.status, Object.fromEntries(response.headers));
     res.end(Buffer.from(await response.arrayBuffer()));
   } catch (error) {
@@ -123,7 +129,7 @@ server.listen(Number(process.env.PORT || 3001), "127.0.0.1", () =>
 );
 const timer = setInterval(
   () =>
-    cleanup(env).catch((error) =>
+    Promise.all([cleanup(env), cleanTVUpdates(tvUpdate)]).catch((error) =>
       console.error(
         JSON.stringify({ event: "cleanup_failed", type: error.name }),
       ),

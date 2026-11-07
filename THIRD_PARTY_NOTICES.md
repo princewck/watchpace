@@ -3,6 +3,7 @@
 本仓库自有代码采用 MIT License，第三方材料不因收录而改换许可。
 
 - Apple App Store Server Library：MIT；仅官方云订阅验证路径需要，版本及传递依赖见 `server/package-lock.json`。
+- node-app-attest：MIT；官方网关用于验证 iOS 下载请求的 Apple App Attest 签名。
 - esbuild：MIT；仅构建时使用。
 - Prettier：MIT；仅开发时使用。Java 格式化插件沿用其发布包许可。
 - Android Gradle Plugin、AndroidX 测试库：沿用各自发布包许可；依赖声明见 `android/`。

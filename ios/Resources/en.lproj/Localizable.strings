@@ -732,3 +732,8 @@
 "正在重新下载安装包…" = "Retrying the download…";
 "下载安装包超时，已重试一次。请检查手机网络后再试。" = "The download timed out after one retry. Check your phone’s connection and try again.";
 "手机未能连接安装包下载站，已重试一次。请检查网络后再试。" = "Your phone couldn’t reach the download server after one retry. Check your connection and try again.";
+
+"正在验证手机并下载安装包…" = "Verifying this iPhone and downloading the update…";
+"手机 App 验证未通过，暂时无法下载安装包。" = "This iPhone could not be verified for the download.";
+"这台手机暂不支持 App 验证，无法下载电视更新。" = "This iPhone does not support verification for TV updates.";
+"电视更新版本已变化，请刷新后重试。" = "A new TV update is available. Refresh and try again.";

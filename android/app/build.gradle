@@ -3,6 +3,13 @@ android {
     namespace 'org.example.tvchallenge'
     compileSdk 34
     defaultConfig { applicationId 'org.example.tvchallenge'; minSdk 26; targetSdk 34; versionCode 18; versionName '5.0.12'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner' }
+    // The bootstrap installer is pinned separately from the protected OTA channel.
+    def otaCode = providers.gradleProperty('otaVersionCode')
+    def otaName = providers.gradleProperty('otaVersionName')
+    if (otaCode.isPresent() && otaName.isPresent()) {
+        defaultConfig.versionCode = otaCode.get().toInteger()
+        defaultConfig.versionName = otaName.get()
+    }
     signingConfigs {
         release {
             if (System.getenv('TV_RELEASE_STORE_FILE')) {

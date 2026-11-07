@@ -12,7 +12,8 @@
     "lint": "eslint src node-runtime test"
   },
   "dependencies": {
-    "@apple/app-store-server-library": "^3.0.0"
+    "@apple/app-store-server-library": "^3.0.0",
+    "node-app-attest": "1.0.1"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
