@@ -94,6 +94,9 @@ final class LanControl {
         p.getInt("session_break_seconds") > 86400
       ) throw new SecurityException("Invalid session break");
     }
+    if (p.has("schedule_time_zone")) java.time.ZoneId.of(
+      p.getString("schedule_time_zone")
+    );
     JSONArray windows = p.getJSONArray("banned_windows");
     if (windows.length() > 32) throw new SecurityException("Too many windows");
     for (int i = 0; i < windows.length(); i++) {

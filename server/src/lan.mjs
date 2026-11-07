@@ -1,7 +1,11 @@
 import { devicePolicy, canAccess } from "./device-access.mjs";
 import { createPublicKey, verify } from "node:crypto";
 import { HTTPError, hash } from "./security.mjs";
-import { validatePolicy, stateFor } from "./policy.mjs";
+import {
+  validatePolicy,
+  validateScheduleForDevice,
+  stateFor,
+} from "./policy.mjs";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const B64 = /^[A-Za-z0-9+/]+={0,2}$/;
 export const signingText = (e) =>
@@ -220,6 +224,8 @@ export async function syncLan(db, household, device, envelopes, now) {
         });
         continue;
       }
+      if (command.kind === "policy")
+        validateScheduleForDevice(command.payload.policy, device);
       chainBase ??= e.base_revision;
       expected ??= e.base_revision;
       if (e.base_revision !== chainBase && e.base_revision !== expected)

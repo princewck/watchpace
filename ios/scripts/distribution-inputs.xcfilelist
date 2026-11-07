@@ -20,7 +20,7 @@ $(SRCROOT)/../ios/Resources/ja.lproj/Localizable.strings
 $(SRCROOT)/../ios/Resources/ko.lproj/Localizable.strings
 $(SRCROOT)/../ios/Resources/zh-Hans.lproj/Localizable.strings
 $(SRCROOT)/../scripts/check-distribution.py
-$(SRCROOT)/../server/public/downloads/install/1.0.10/family-tv-setup.zip
-$(SRCROOT)/../server/public/downloads/install/1.0.10/manifest.json
-$(SRCROOT)/../server/public/downloads/tv/5.0.9/family-tv.apk
+$(SRCROOT)/../server/public/downloads/install/1.0.12/family-tv-setup.zip
+$(SRCROOT)/../server/public/downloads/install/1.0.12/manifest.json
+$(SRCROOT)/../server/public/downloads/tv/5.0.11/family-tv.apk
 $(SRCROOT)/../server/public/downloads/tv/latest.json

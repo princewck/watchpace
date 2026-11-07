@@ -178,7 +178,9 @@ final class OfflineState {
       boolean paused = state.optBoolean("paused", false),
         quiet = false;
       Calendar cal = Calendar.getInstance(
-        TimeZone.getTimeZone("Asia/Shanghai")
+        TimeZone.getTimeZone(
+          policy.optString("schedule_time_zone", "Asia/Shanghai")
+        )
       );
       cal.setTimeInMillis(now());
       int weekday = cal.get(Calendar.DAY_OF_WEEK) - 1,

@@ -107,9 +107,13 @@ final class SelfUpdate {
         .put("created_ms", System.currentTimeMillis())
         .put("status", "receiving");
       directory(c).mkdirs();
-      try (FileOutputStream output = new FileOutputStream(apk(c))) {
+      File incoming = new File(directory(c), "incoming.apk");
+      try (FileOutputStream output = new FileOutputStream(incoming)) {
         output.getFD().sync();
       }
+      if (!incoming.renameTo(apk(c))) throw new IOException(
+        "Cannot open update upload"
+      );
       write(c, upload);
     } else {
       upload = read(c);
@@ -215,6 +219,12 @@ final class SelfUpdate {
         signatures(pm.getPackageInfo(c.getPackageName(), flags))
       )
     ) throw new SecurityException("Wrong app, signature or version");
+  }
+
+  static synchronized File verifiedApk(Context c) throws Exception {
+    File file = apk(c);
+    verify(c, read(c));
+    return file;
   }
 
   static synchronized int prepareInstall(Context c) throws Exception {

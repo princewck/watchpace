@@ -24,8 +24,8 @@ final class AgePresetFlowTests: XCTestCase {
     XCTAssertTrue(
       app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "15 分钟")).firstMatch
         .exists)
-    for _ in 0..<3 where !app.staticTexts["睡前休息"].isHittable { app.swipeUp() }
-    XCTAssertTrue(app.staticTexts["睡前休息"].exists)
+    for _ in 0..<3 where !app.staticTexts["强制休息"].isHittable { app.swipeUp() }
+    XCTAssertTrue(app.staticTexts["强制休息"].exists)
     let image = XCTAttachment(screenshot: app.screenshot())
     image.name = "age-preset-applied"
     image.lifetime = .keepAlways

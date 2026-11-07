@@ -1,5 +1,6 @@
 import { viewingSession } from "./viewing-session.mjs";
 import { HTTPError } from "./security.mjs";
+export const DEFAULT_SCHEDULE_ZONE = "Asia/Shanghai";
 export const DEFAULT_POLICY = {
   initial_seconds: 1800,
   first_reward_seconds: 1200,
@@ -45,6 +46,19 @@ export function validatePolicy(input) {
     value.session_break_seconds > 86400
   )
     throw new HTTPError(400, "Invalid session break");
+  if (value.schedule_time_zone !== undefined) {
+    const zone = value.schedule_time_zone;
+    if (
+      typeof zone !== "string" ||
+      !/^[A-Za-z][A-Za-z0-9_+/-]{0,63}$/.test(zone)
+    )
+      throw new HTTPError(400, "Invalid schedule time zone");
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: zone });
+    } catch {
+      throw new HTTPError(400, "Invalid schedule time zone");
+    }
+  }
   if (!Array.isArray(value.banned_windows) || value.banned_windows.length > 32)
     throw new HTTPError(400, "Invalid windows");
   value.banned_windows = value.banned_windows.map((w) => {
@@ -70,10 +84,32 @@ export function validatePolicy(input) {
   });
   return value;
 }
+export function validateScheduleForDevice(policy, device) {
+  if (
+    (policy.schedule_time_zone ?? DEFAULT_SCHEDULE_ZONE) !==
+      DEFAULT_SCHEDULE_ZONE &&
+    (device?.client_version_code ?? 0) < 16
+  )
+    throw new HTTPError(
+      409,
+      "Update the TV client before changing the schedule time zone",
+    );
+}
+const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export function bannedAt(policy, now) {
-  const date = new Date(now + 8 * 3600000),
-    day = date.getUTCDay(),
-    minute = date.getUTCHours() * 60 + date.getUTCMinutes();
+  if (!policy.banned_windows.some((window) => window.enabled)) return null;
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: policy.schedule_time_zone ?? DEFAULT_SCHEDULE_ZONE,
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const fields = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value]),
+  );
+  const day = weekdays.indexOf(fields.weekday);
+  const minute = Number(fields.hour) * 60 + Number(fields.minute);
   const n = (t) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
   return (
     policy.banned_windows.find((w) => {

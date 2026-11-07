@@ -67,7 +67,7 @@ struct RulesView: View {
           ForEach(store.policy.banned_windows) { window in
             VStack(alignment: .leading, spacing: 6) {
               HStack {
-                Text(window.label).font(.headline)
+                Text(window.displayLabel).font(.headline)
                 Spacer()
                 Text(window.enabled ? L10n.tr("已开启") : L10n.tr("已关闭")).foregroundStyle(
                   Color("SupportingText"))
@@ -77,7 +77,7 @@ struct RulesView: View {
             }.padding(.vertical, 4)
           }
         } header: {
-          Text(L10n.tr("休息时段 · 北京时间"))
+          Text(L10n.tr("强制休息时段") + " · " + store.policy.scheduleZoneLabel)
         } footer: {
           Text(L10n.tr("跨午夜时段归属于开始的那一天；开始与结束相同表示全天。临时额度优先于休息时段。")).foregroundStyle(
             Color("SupportingText"))
@@ -183,13 +183,26 @@ struct PolicyEditor: View {
             }
           }
         }
-        Section(L10n.tr("休息时段 · 北京时间")) {
+        Section(L10n.tr("强制休息时段")) {
+          LabeledContent(L10n.tr("时段时区"), value: draft.scheduleZoneLabel)
+          if store.demo || (store.selected?.client_version_code ?? 0) >= 16 {
+            if draft.scheduleZone.identifier != TimeZone.autoupdatingCurrent.identifier {
+              Button(L10n.tr("使用手机当前时区")) {
+                draft.schedule_time_zone = TimeZone.autoupdatingCurrent.identifier
+              }
+              Text(L10n.tr("切换时区会保留设置的钟点，并按新时区执行。"))
+                .font(.footnote).foregroundStyle(Color("SupportingText"))
+            }
+          } else {
+            Text(L10n.tr("更新电视客户端后可使用手机时区。"))
+              .font(.footnote).foregroundStyle(Color("SupportingText"))
+          }
           ForEach($draft.banned_windows) { $window in
             NavigationLink {
-              WindowEditor(window: $window)
+              WindowEditor(window: $window, zone: draft.scheduleZone)
             } label: {
               VStack(alignment: .leading) {
-                Text(window.label.isEmpty ? L10n.tr("休息时段") : window.label)
+                Text(window.displayLabel)
                 Text(
                   "\(window.start) – \(window.end) · \(window.enabled ? L10n.tr("开启") : L10n.tr("关闭"))"
                 ).font(.footnote).foregroundStyle(Color("SupportingText"))
@@ -198,6 +211,11 @@ struct PolicyEditor: View {
           }.onDelete { draft.banned_windows.remove(atOffsets: $0) }
           if draft.banned_windows.count < 32 {
             Button(L10n.tr("添加休息时段"), systemImage: "plus") {
+              if draft.banned_windows.isEmpty, draft.schedule_time_zone == nil,
+                store.demo || (store.selected?.client_version_code ?? 0) >= 16
+              {
+                draft.schedule_time_zone = TimeZone.autoupdatingCurrent.identifier
+              }
               draft.banned_windows.append(QuietWindow())
             }
           }
@@ -261,6 +279,7 @@ struct PolicyEditor: View {
 }
 struct WindowEditor: View {
   @Binding var window: QuietWindow
+  let zone: TimeZone
   private let names = [
     L10n.tr("周日"), L10n.tr("周一"), L10n.tr("周二"), L10n.tr("周三"), L10n.tr("周四"), L10n.tr("周五"),
     L10n.tr("周六"),
@@ -268,7 +287,9 @@ struct WindowEditor: View {
   var body: some View {
     Form {
       Section {
-        TextField(L10n.tr("名称"), text: $window.label).onChange(of: window.label) { _, value in
+        TextField(
+          L10n.tr("名称"), text: Binding(get: { window.displayLabel }, set: { window.label = $0 })
+        ).onChange(of: window.label) { _, value in
           window.label = String(value.prefix(64))
         }
         Toggle(L10n.tr("开启此时段"), isOn: $window.enabled)
@@ -292,13 +313,15 @@ struct WindowEditor: View {
               }))
         }
       }
-      Section { Text(L10n.tr("时间使用北京时间；至少保留一个重复日期。跨午夜时段归属于开始的那一天。")) }
-    }.navigationTitle(L10n.tr("休息时段")).navigationBarTitleDisplayMode(.inline)
+      Section { Text(ViewingPolicy.zoneLabel(zone)) }
+    }.environment(\.timeZone, zone)
+      .navigationTitle(L10n.tr("强制休息时段")).navigationBarTitleDisplayMode(.inline)
   }
   private func time(_ value: Binding<String>) -> Binding<Date> {
     let formatter = DateFormatter()
     formatter.dateFormat = "HH:mm"
-    formatter.timeZone = .current
+    formatter.timeZone = zone
+    formatter.locale = Locale(identifier: "en_US_POSIX")
     return Binding(
       get: { formatter.date(from: value.wrappedValue) ?? .now },
       set: { value.wrappedValue = formatter.string(from: $0) })

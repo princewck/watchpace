@@ -710,3 +710,10 @@
 "安装包大小异常，已停止下载。" = "The package size didn't match. Download stopped.";
 "请先为这台电视开启局域网直连，并连接同一 Wi-Fi。" = "Enable home network connection for this TV first, and connect your phone and TV to the same Wi-Fi.";
 "电视客户端尚不支持手机升级。" = "The TV app doesn't support updates from your phone yet.";
+
+"强制休息" = "Scheduled break";
+"强制休息时段" = "Scheduled breaks";
+"时段时区" = "Schedule time zone";
+"使用手机当前时区" = "Use the phone’s time zone";
+"切换时区会保留设置的钟点，并按新时区执行。" = "Changing the time zone keeps the scheduled clock times and applies them in the new zone.";
+"更新电视客户端后可使用手机时区。" = "Update the TV app to use the phone’s time zone.";

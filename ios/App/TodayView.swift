@@ -85,7 +85,7 @@ struct TodayView: View {
               .minimumScaleFactor(0.7)
             Spacer()
           }.padding(.vertical, 12).accessibilityIdentifier("todayDuration")
-          LabeledContent(L10n.tr("剩余观看时间"), value: usage.state.remaining_seconds.preciseDurationText)
+          LabeledContent(L10n.tr("剩余观看时间"), value: store.policy.remainingToday(usage.state).preciseDurationText)
           LabeledContent(
             store.lan.localOnline
               ? L10n.tr("电视当前规则状态")

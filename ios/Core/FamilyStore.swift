@@ -99,7 +99,7 @@ enum DataLoadState: Equatable {
     }
     for index in policy.banned_windows.indices
     where policy.banned_windows[index].id == "demo-bedtime" {
-      policy.banned_windows[index].label = L10n.tr("睡前休息")
+      policy.banned_windows[index].label = L10n.tr("强制休息")
     }
   }
   func login(origin: String, username: String, password: String) async {

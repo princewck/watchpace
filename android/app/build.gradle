@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
     namespace 'org.example.tvchallenge'
     compileSdk 34
-    defaultConfig { applicationId 'org.example.tvchallenge'; minSdk 26; targetSdk 34; versionCode 15; versionName '5.0.9'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner' }
+    defaultConfig { applicationId 'org.example.tvchallenge'; minSdk 26; targetSdk 34; versionCode 17; versionName '5.0.11'; testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner' }
     signingConfigs {
         release {
             if (System.getenv('TV_RELEASE_STORE_FILE')) {

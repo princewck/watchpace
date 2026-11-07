@@ -23,11 +23,15 @@ struct TVDevice: Codable, Identifiable, Equatable {
 }
 struct QuietWindow: Codable, Identifiable, Equatable {
   var id = UUID().uuidString
-  var label: String = L10n.tr("睡前休息")
+  var label: String = L10n.tr("强制休息")
   var days: [Int] = Array(0...6)
   var start = "20:30"
   var end = "07:00"
   var enabled = true
+  var displayLabel: String {
+    let legacy = ["睡前休息", "Bedtime break", "就寝前の休憩", "취침 전 휴식"]
+    return label.isEmpty || legacy.contains(label) ? L10n.tr("强制休息") : label
+  }
 }
 struct ViewingPolicy: Codable, Equatable {
   var initial_seconds = 1800
@@ -37,6 +41,7 @@ struct ViewingPolicy: Codable, Equatable {
   var rest_reset_seconds = 18000
   var default_grant_seconds = 900
   var banned_windows: [QuietWindow] = []
+  var schedule_time_zone: String? = nil
   var daily_limit_seconds: Int? = nil
   var session_limit_seconds: Int? = nil
   var session_break_seconds: Int? = 300
@@ -66,6 +71,7 @@ struct PlaybackState: Codable {
   var stage_used_seconds: Int?
   var stage_budget_seconds: Int?
   var override_seconds: Int?
+  var bonus_expires_ms: Double? = nil
   var paused: Bool?
   var control_revision: Int?
   var applied_revision: Int?
