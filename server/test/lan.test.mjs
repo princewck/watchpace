@@ -350,3 +350,22 @@ test("shared parent local signatures synchronize into the TV owner and revoke cl
     "rejected",
   );
 });
+
+test("simultaneous phone and TV delivery applies one temporary allowance", async (t) => {
+  const f = await fixture(t);
+  await f.beat();
+  await f.enroll();
+  const command = f.envelope({ kind: "grant", seconds: 900 });
+  const [phone, tv] = await Promise.all([
+    f.send(command),
+    f.beat({ lan_commands: [command] }),
+  ]);
+  for (const response of [phone, tv]) {
+    assert.equal(response.status, 200);
+    const state = await response.json();
+    assert.equal(state.override_seconds, 900);
+    assert.equal(state.control_revision, 2);
+    assert.equal(state.lan_sync_results[0].status, "accepted");
+    assert.equal(state.lan_sync_results[0].revision, 2);
+  }
+});

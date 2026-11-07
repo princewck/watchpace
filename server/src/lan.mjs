@@ -262,8 +262,26 @@ export async function syncLan(db, household, device, envelopes, now) {
             e.issued_ms,
           ),
       ]);
-      if (inserted[0].meta.changes === 0)
-        throw new HTTPError(409, "Cloud configuration changed");
+      if (inserted[0].meta.changes === 0) {
+        // The phone and the TV heartbeat may both pass the initial lookup.
+        // If the other transaction committed this command, return its receipt.
+        const replay = await db
+          .prepare(
+            `SELECT l.result_revision FROM operations o JOIN lan_operation_results l USING(household_id,request_id)
+             WHERE o.household_id=? AND o.request_id=? AND o.device_id=? AND o.kind=? AND o.body_hash=?`,
+          )
+          .bind(household, e.request_id, device.id, command.kind, digest)
+          .first();
+        if (!replay) throw new HTTPError(409, "Cloud configuration changed");
+        expected = replay.result_revision;
+        results.push({
+          request_id: e.request_id,
+          status: "accepted",
+          revision: expected,
+          duplicate: true,
+        });
+        continue;
+      }
       expected++;
       results.push({
         request_id: e.request_id,

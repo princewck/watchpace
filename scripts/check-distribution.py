@@ -215,7 +215,14 @@ def check(root=ROOT, online=False, write=False, fetch=False, packaged_only=False
             )
         latest_url = f"{origin}/downloads/tv/latest.json"
         with urllib.request.urlopen(
-            urllib.request.Request(latest_url, headers={"Cache-Control": "no-cache"}), timeout=30
+            urllib.request.Request(
+                latest_url,
+                headers={
+                    "User-Agent": "FamilyTV-Release-Check/1.0",
+                    "Cache-Control": "no-cache",
+                },
+            ),
+            timeout=30,
         ) as response:
             require(response.status == 200 and response.url == latest_url,
                     "Unexpected latest TV manifest redirect")

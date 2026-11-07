@@ -250,6 +250,7 @@ final class LanControl {
         if (!edit.commit()) throw new java.io.IOException(
           "Local command not persisted"
         );
+        NativeState.log(c, "LAN_CONTROL_ACCEPTED " + kind);
         MonitorService.signalLocalCommand();
       }
       return result(c, false);

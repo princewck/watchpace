@@ -218,12 +218,15 @@ struct LanDelivery {
     }
     let envelope = try identity.envelope(
       device: device, revision: max(1, revision), payload: payload)
+    // Start both deliveries with the same signed request ID. The TV can apply
+    // its copy immediately while the server independently records the command.
+    async let cloudRequest: PlaybackState = api.request(
+      "/admin/lan/command", auth: auth, device: device, body: ["envelope": envelope.object],
+      timeout: 8)
     let localReceipt = try? await local(envelope)
     try Task.checkCancellation()
     do {
-      let cloud: PlaybackState = try await api.request(
-        "/admin/lan/command", auth: auth, device: device, body: ["envelope": envelope.object],
-        timeout: localReceipt == nil ? 20 : 3)
+      let cloud = try await cloudRequest
       statusTemplate = localReceipt == nil ? "本次已回退云端，等待电视获取。" : "指令已本地送达并同步云端，等待电视执行确认。"
       return LanDelivery(
         state: cloud, viaLocal: localReceipt != nil, cloudSynced: true, message: status)

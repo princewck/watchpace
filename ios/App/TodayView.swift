@@ -81,11 +81,11 @@ struct TodayView: View {
       if let usage = store.usage, store.demo || store.selected?.last_heartbeat_ms != nil {
         Section(L10n.tr("今天的观看")) {
           HStack(alignment: .firstTextBaseline) {
-            Text(usage.todaySeconds.durationText).font(.largeTitle.bold()).monospacedDigit()
+            Text(usage.todaySeconds.preciseDurationText).font(.largeTitle.bold()).monospacedDigit()
               .minimumScaleFactor(0.7)
             Spacer()
           }.padding(.vertical, 12).accessibilityIdentifier("todayDuration")
-          LabeledContent(L10n.tr("剩余观看时间"), value: usage.state.remaining_seconds.durationText)
+          LabeledContent(L10n.tr("剩余观看时间"), value: usage.state.remaining_seconds.preciseDurationText)
           LabeledContent(
             store.lan.localOnline
               ? L10n.tr("电视当前规则状态")
@@ -95,7 +95,7 @@ struct TodayView: View {
             LabeledContent(L10n.tr("每日观看上限"), value: limit.durationText)
           }
           if (usage.state.override_seconds ?? 0) > 0 {
-            LabeledContent(L10n.tr("临时额度"), value: (usage.state.override_seconds ?? 0).durationText)
+            LabeledContent(L10n.tr("临时额度"), value: (usage.state.override_seconds ?? 0).preciseDurationText)
           }
         }
         Section {

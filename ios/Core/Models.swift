@@ -170,6 +170,11 @@ enum TVError: LocalizedError {
   }
 }
 extension Int {
+  var preciseDurationText: String {
+    Duration.seconds(Swift.max(0, self)).formatted(
+      .units(allowed: [.hours, .minutes, .seconds], width: .wide).locale(L10n.locale))
+  }
+
   var durationText: String {
     let minutes = Swift.max(0, self) / 60
     return minutes >= 60
